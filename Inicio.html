@@ -2,645 +2,977 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Encuentra el Sol · Misión 1: Reconocer la órbita</title>
-  <meta name="description" content="Recuperación diagnóstica interactiva sobre la forma, el centro, la orientación y las dimensiones de una órbita elíptica.">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --space: #0a2a32;
-      --cream: #fefaf2;
-      --cream-soft: #fffbf0;
-      --blue: #1a5f82;
-      --orange: #c0672c;
-      --gold: #f3b33d;
-      --green: #2e7d32;
-      --red: #b8452c;
-      --line: #ecd9b4;
-    }
-    body {
-      background: radial-gradient(circle at 78% 18%, #154c5d 0%, var(--space) 42%, #071b22 100%);
-      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 18px;
-      position: relative;
-      overflow-x: hidden;
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .3;
-      background-image:
-        radial-gradient(circle at 10% 20%, #fff 0 1px, transparent 1.5px),
-        radial-gradient(circle at 30% 70%, #fff 0 1px, transparent 1.5px),
-        radial-gradient(circle at 65% 35%, #fff 0 1px, transparent 1.5px),
-        radial-gradient(circle at 88% 72%, #fff 0 1px, transparent 1.5px);
-      background-size: 180px 180px, 230px 230px, 280px 280px, 320px 320px;
-    }
-    .back-arrow {
-      position: fixed; top: 20px; left: 20px;
-      background: rgba(255,248,225,.9);
-      width: 42px; height: 42px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.8rem; font-weight: bold; color: var(--blue);
-      text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,.25);
-      transition: .2s; z-index: 400; border: 1px solid var(--line);
-    }
-    .back-arrow:hover { background: #fef0cf; transform: scale(1.06); color: var(--orange); }
-    .timer {
-      position: fixed; bottom: 18px; left: 20px;
-      background: rgba(10,42,50,.82); color: #fef0cf;
-      padding: 6px 12px; border-radius: 50px;
-      font-family: monospace; font-size: .85rem; font-weight: 600;
-      letter-spacing: 1px; z-index: 300; pointer-events: none;
-    }
-    .stage { width: min(1300px, 100%); height: calc(100dvh - 24px); max-height: 900px; position: relative; z-index: 2; display: flex; align-items: center; }
-    .hidden { display: none !important; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Primer vistazo al almacén · El inventario del almacén escolar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@400;600;700;800&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#dccfc4;
+    --bg-alt:#d4c6ba;
+    --bg-card:rgba(255,255,255,.8);
+    --bg-card-soft:rgba(255,255,255,.55);
+    --ink:#1a1a1a;
+    --ink-soft:#3a322a;
+    --accent:#b85c3a;
+    --accent-dark:#7a3a22;
+    --accent-soft:rgba(184,92,58,.13);
+    --accent2:#2a5f7a;
+    --accent2-soft:rgba(42,95,122,.13);
+    --success:#4c8a5c;
+    --success-bg:rgba(76,138,92,.14);
+    --error:#c0483a;
+    --error-bg:rgba(192,72,58,.13);
+    --border-soft:rgba(26,24,20,.1);
+    --font-title:'Lora', serif;
+    --font-body:'Nunito', sans-serif;
+    --font-mono:'Source Code Pro', monospace;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100svh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    background:
+      radial-gradient(ellipse at 15% 10%, #e7dcd0 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 90%, #cbb9a8 0%, transparent 55%),
+      #cdbfae;
+    font-family:var(--font-body);
+    color:var(--ink);
+    overflow:hidden;
+  }
+  button{font-family:inherit;}
+  h1,h2,h3{font-family:var(--font-title); margin:0;}
 
-    /* Pantalla de apertura */
-    .intro-card {
-      background: linear-gradient(145deg, rgba(254,250,242,.98), rgba(255,251,240,.96));
-      border-radius: 34px; padding: clamp(20px, 3.4vw, 42px);
-      box-shadow: 0 25px 45px rgba(0,0,0,.38);
-      display: grid; grid-template-columns: 1.05fr .95fr;
-      gap: 36px; align-items: center; overflow: hidden;
-      border: 1px solid rgba(255,221,160,.65);
-    }
-    .intro-label {
-      display: inline-block; background: #0f2f3f; color: #ffe6b3;
-      padding: 7px 16px; border-radius: 30px; font-weight: 800;
-      font-size: .78rem; letter-spacing: .7px; text-transform: uppercase;
-      margin-bottom: 18px;
-    }
-    .intro-copy h1 { color: var(--blue); font-size: clamp(2rem, 5vw, 3.6rem); line-height: 1.03; }
-    .intro-copy h2 { color: var(--orange); font-size: clamp(1.05rem, 2vw, 1.4rem); margin: 12px 0 18px; }
-    .intro-copy p { color: #2d5363; line-height: 1.65; font-size: 1rem; max-width: 650px; }
-    .mission-list { margin: 21px 0; display: grid; gap: 9px; }
-    .mission-item {
-      background: #eef3e6; color: #2a5a3a; border-radius: 18px;
-      padding: 10px 14px; font-weight: 700; border-left: 5px solid #5fad56;
-    }
-    .primary-btn, .secondary-btn {
-      border: none; border-radius: 40px; padding: 9px 20px;
-      font-weight: 800; cursor: pointer; font-size: .95rem; transition: .2s;
-    }
-    .primary-btn { background: linear-gradient(135deg, #ffb347, #f39c12); color: #19313a; box-shadow: 0 7px 16px rgba(230,126,34,.25); }
-    .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(230,126,34,.35); }
-    .secondary-btn { background: #d9d2c4; color: #2d2b20; }
-    .intro-visual {
-      min-height: 275px; position: relative; border-radius: 32px;
-      background: radial-gradient(circle at 66% 50%, #ffd45c 0 20px, #f59e0b 21px 34px, transparent 35px),
-                  radial-gradient(ellipse at center, transparent 0 43%, rgba(125,211,252,.78) 44% 45%, transparent 46%),
-                  linear-gradient(145deg, #0b1a2e, #0f3946);
-      overflow: hidden; box-shadow: inset 0 0 45px rgba(0,0,0,.35);
-    }
-    .intro-visual::before {
-      content: "ÓRBITA"; position: absolute; top: 24px; left: 28px;
-      color: #b9d9ff; font-weight: 800; letter-spacing: 3px; opacity: .78;
-    }
-    .planet {
-      position: absolute; left: 15%; top: 48%; font-size: 3.2rem;
-      filter: drop-shadow(0 0 8px rgba(64,224,208,.75));
-      animation: drift 4s ease-in-out infinite alternate;
-    }
-    .unknown-sun {
-      position: absolute; right: 22%; top: 41%; font-size: 4.6rem;
-      color: #ffe19a; text-shadow: 0 0 18px rgba(255,205,90,.45);
-      font-weight: 900;
-    }
-    .visual-column {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      align-self: center;
-    }
-    .visual-caption {
-      margin: 0;
-      padding: 7px 12px;
-      color: #355f70;
-      text-align: center;
-      font-size: .82rem;
-      line-height: 1.3;
-      font-weight: 700;
-    }
-    @keyframes drift { from { transform: translate(-8px,-8px); } to { transform: translate(20px,12px); } }
+  /* ---------- Stage ---------- */
+  .stage{
+    position:relative;
+    width:min(1600px, 96vw);
+    aspect-ratio:1600/650;
+    max-height:94svh;
+    background:linear-gradient(160deg, var(--bg) 0%, var(--bg-alt) 100%);
+    border-radius:26px;
+    box-shadow:0 40px 90px rgba(30,20,10,.35), 0 2px 0 rgba(255,255,255,.4) inset;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    isolation:isolate;
+  }
 
-    /* Cuestionario */
-    .quiz-wrapper {
-      width: 100%; max-height: calc(100dvh - 24px); background: var(--cream); border-radius: 34px;
-      box-shadow: 0 25px 40px rgba(0,0,0,.35);
-      display: flex; flex-wrap: wrap; overflow: hidden;
-    }
-    .left-panel {
-      flex: 1.05; min-width: 330px; background: var(--cream-soft);
-      padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: .65rem;
-      border-right: 2px solid var(--line);
-    }
-    .title-area h2 { font-size: 1.25rem; color: var(--blue); font-weight: 800; }
-    .title-area p { font-size: .78rem; color: var(--orange); font-weight: 700; margin-top: 4px; }
-    .phase-banner {
-      background: #0f2f3f; color: #ffe6b3; padding: 8px 14px;
-      border-radius: 28px; text-align: center; font-weight: 800; font-size: .78rem;
-      letter-spacing: .4px;
-    }
-    .question-text {
-      background: #eef3e6; padding: .7rem .9rem; border-radius: 26px;
-      text-align: center; font-weight: 800; font-size: .95rem; color: #2a5a3a;
-      box-shadow: inset 0 1px 2px #fff8, 0 4px 10px rgba(0,0,0,.05);
-    }
-    .color-options { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 2px 0; }
-    .color-btn {
-      border: none; border-radius: 60px; padding: 9px 12px;
-      font-size: .88rem; font-weight: 800; cursor: pointer; transition: .08s;
-      box-shadow: 0 4px 8px rgba(0,0,0,.1); width: 88%; max-width: 310px;
-      min-height: 38px; text-align: center;
-    }
-    .color-red { background: #e34234; color: white; border-bottom: 3px solid #921f12; }
-    .color-yellow { background: var(--gold); color: #2c2b26; border-bottom: 3px solid #bc7a1a; }
-    .color-green { background: #5fad56; color: white; border-bottom: 3px solid #2c6e2f; }
-    .color-btn:hover { transform: translateY(-2px); }
-    .color-btn:active { transform: translateY(2px); }
-    .nav-buttons { display: flex; justify-content: center; gap: 14px; margin-top: 2px; }
-    .nav-btn {
-      background: #b9a77d; border: none; padding: 7px 17px;
-      border-radius: 40px; font-weight: 800; color: #2d2b20; cursor: pointer;
-    }
-    .nav-btn:disabled { opacity: .45; cursor: not-allowed; }
-    .progress {
-      background: #e3d7c4; display: inline-block; padding: 5px 16px;
-      border-radius: 30px; font-size: .75rem; font-weight: 700;
-      text-align: center; align-self: center;
-    }
-    .right-canvas {
-      flex: 1.8; background: #fef7ea; display: flex;
-      justify-content: center; align-items: center; padding: 8px;
-    }
-    .canvas-box {
-      background: white; border-radius: 28px; box-shadow: 0 12px 22px rgba(0,0,0,.1);
-      padding: 5px; border: 1px solid #e0cdb0; width: 100%; text-align: center;
-    }
-    canvas { display: block; margin: 0 auto; border-radius: 20px; background: #fff; width: 100%; height: auto; }
-    .toast-message {
-      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-      color: #ffefcf; padding: 7px 17px; border-radius: 60px;
-      font-weight: 800; z-index: 500; box-shadow: 0 4px 12px rgba(0,0,0,.3);
-      opacity: 0; transition: opacity .1s; pointer-events: none;
-    }
-    .toast-show { opacity: 1; }
-    .toast-correct { background: var(--green); color: white; }
-    .toast-wrong { background: var(--red); }
+  /* ---------- HUD ---------- */
+  .hud{
+    position:absolute; top:16px; right:20px; z-index:20;
+    display:flex; align-items:center; gap:8px;
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(4px);
+    border:1px solid var(--accent-soft);
+    border-radius:999px;
+    padding:6px 14px;
+    font-family:var(--font-mono);
+    font-size:.78rem;
+    color:var(--ink-soft);
+    box-shadow:0 4px 10px rgba(0,0,0,.06);
+  }
+  .hud::before{content:"⏱"; font-size:.9rem;}
 
-    /* Cierre de misión */
-    .completion-card {
-      width: 100%; max-height: calc(100dvh - 24px); overflow: hidden;
-      background: linear-gradient(145deg, #fefaf2, #fff7e7);
-      border-radius: 34px; padding: clamp(18px, 2.8vw, 32px);
-      box-shadow: 0 25px 45px rgba(0,0,0,.38); text-align: center;
-      border: 1px solid rgba(255,221,160,.7);
-    }
-    .completion-icon { font-size: 2.7rem; margin-bottom: 2px; }
-    .completion-card h2 { color: var(--blue); font-size: clamp(1.55rem, 3vw, 2.25rem); }
-    .completion-card .summary { color: #355f70; margin: 8px auto; max-width: 760px; line-height: 1.42; font-size: .92rem; }
-    .unresolved {
-      background: #0f2f3f; color: #ffe6b3; border-radius: 28px;
-      margin: 12px auto; padding: 14px 18px; max-width: 720px;
-    }
-    .unresolved small { display: block; color: #b9d9ff; margin-bottom: 6px; font-weight: 700; }
-    .unresolved strong { font-size: clamp(1.05rem, 2.4vw, 1.5rem); }
-    .completion-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  /* ---------- Screens ---------- */
+  .screens{position:relative; flex:1 1 auto; min-height:0; z-index:1;}
+  .screen{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:0 64px;
+    opacity:0; transform:translateX(40px);
+    transition:opacity .6s var(--ease), transform .6s var(--ease);
+    pointer-events:none;
+  }
+  .screen.active{opacity:1; transform:translateX(0); pointer-events:auto; z-index:2;}
+  .screens.dir-back .screen:not(.active){transform:translateX(-40px);}
 
-    @media (max-width: 820px) {
-      .stage { height: auto; max-height: none; }
-      .intro-card { grid-template-columns: 1fr; }
-      .intro-visual { min-height: 280px; }
-      .quiz-wrapper { flex-direction: column; }
-      .left-panel { border-right: none; border-bottom: 2px solid var(--line); }
-      .timer { bottom: 10px; left: 10px; font-size: .7rem; }
-      .back-arrow { top: 10px; left: 10px; width: 36px; height: 36px; font-size: 1.5rem; }
+  /* ---------- Portada interna ---------- */
+  .portada{text-align:center; gap:16px;}
+  .portada .eyebrow{opacity:0; animation:none;}
+  .portada.active .eyebrow{animation:enter .5s var(--ease) .1s forwards;}
+  .portada.active .p-title{animation:enter .5s var(--ease) .22s forwards;}
+  .portada.active .p-sub{animation:enter .5s var(--ease) .34s forwards;}
+  .portada.active .p-btn{animation:enter .5s var(--ease) .48s forwards;}
+  .portada .p-title,.portada .p-sub,.portada .p-btn{opacity:0; transform:translateY(14px);}
+  @keyframes enter{to{opacity:1; transform:translateY(0);}}
+
+  .eyebrow{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-weight:600;
+    font-size:.72rem;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--accent-dark);
+    background:var(--accent-soft);
+    border:1px solid rgba(184,92,58,.25);
+    padding:5px 14px;
+    border-radius:999px;
+  }
+  .p-title{font-size:clamp(1.9rem,3.6vw,2.9rem); font-weight:700; color:var(--ink); max-width:900px; line-height:1.15;}
+  .p-sub{font-family:var(--font-body); font-weight:600; font-size:clamp(1.15rem,1.4vw,1.3rem); color:var(--ink-soft); max-width:960px; line-height:1.5;}
+
+  .btn{
+    font-family:var(--font-body); font-weight:800; font-size:1rem;
+    border:none; border-radius:44px; padding:14px 30px; cursor:pointer;
+    transition:transform .32s var(--ease), box-shadow .32s var(--ease), background .32s var(--ease);
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 10px 24px rgba(184,92,58,.4);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 14px 30px rgba(184,92,58,.48); background:var(--accent-dark);}
+  .btn-primary:disabled{background:#c9b9ab; box-shadow:none; cursor:not-allowed; opacity:.6;}
+  .btn-ghost{background:transparent; color:var(--ink-soft); border:1.5px solid var(--border-soft);}
+  .btn-ghost:hover{border-color:var(--accent2); color:var(--accent2); transform:translateY(-2px);}
+  .btn-ghost:disabled{opacity:.35; cursor:not-allowed; transform:none;}
+  .btn:focus-visible,.opt:focus-visible,.hotspot:focus-visible,input:focus-visible,textarea:focus-visible,.piece:focus-visible{
+    outline:3px solid var(--accent2); outline-offset:2px;
+  }
+
+  /* ---------- Step layout ---------- */
+  .step{gap:0;}
+  .step-inner{width:100%; max-width:1420px; display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .step-head{text-align:center; max-width:900px; display:flex; flex-direction:column; gap:8px; align-items:center;}
+  .step-title{font-size:clamp(1.35rem,2.1vw,1.85rem); font-weight:700; color:var(--ink);}
+  .step-instruction{font-family:var(--font-body); font-weight:700; font-size:clamp(1.1rem,1.25vw,1.22rem); color:var(--ink-soft); margin:0; max-width:820px; line-height:1.4;}
+  .step-content{width:100%; display:flex; flex-direction:column; align-items:center; gap:14px; margin-top:6px;}
+  .feedback{
+    min-height:34px; display:flex; align-items:center; justify-content:center; gap:8px;
+    font-weight:700; font-size:.95rem; padding:0 18px; text-align:center; border-radius:12px;
+    opacity:0; transform:translateY(4px); transition:opacity .38s var(--ease), transform .38s var(--ease), padding .38s var(--ease);
+  }
+  .feedback.show{opacity:1; transform:translateY(0); padding:9px 18px;}
+  .feedback.success{background:var(--success-bg); color:#2f5c3a;}
+  .feedback.error{background:var(--error-bg); color:#7a2e24;}
+  .feedback.neutral{background:var(--accent2-soft); color:#1c4258;}
+
+  /* ---------- Hotspots (Paso 1) ---------- */
+  .hotspot-row{display:flex; gap:22px; justify-content:center; flex-wrap:wrap;}
+  .hotspot{
+    width:220px; min-height:150px; border-radius:20px; border:2px solid var(--border-soft);
+    background:var(--bg-card); cursor:pointer; padding:18px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:8px; text-align:center;
+    transition:transform .32s var(--ease), box-shadow .32s var(--ease), border-color .32s var(--ease);
+    box-shadow:0 6px 16px rgba(0,0,0,.06);
+  }
+  .hotspot:hover{transform:translateY(-4px); box-shadow:0 14px 26px rgba(0,0,0,.12); border-color:var(--accent);}
+  .hotspot .icon{font-size:2.6rem; transition:transform .3s var(--ease);}
+  .hotspot.open{border-color:var(--success); background:#eef5ee;}
+  .hotspot.open .icon{transform:scale(1.1) rotate(-6deg);}
+  .hotspot .label{font-weight:800; font-size:.95rem;}
+  .hotspot .caption{font-size:.82rem; color:var(--ink-soft); line-height:1.35; display:none;}
+  .hotspot.open .caption{display:block;}
+  .hotspot.open .hint{display:none;}
+  .hotspot .hint{font-size:.75rem; color:var(--accent-dark); font-family:var(--font-mono);}
+  .hotspot .check{position:absolute; margin-top:-64px; margin-left:150px; font-size:1.1rem; display:none;}
+  .hotspot.open .check{display:block;}
+
+  /* ---------- Scatter field ---------- */
+  .scatter-field{
+    position:relative; width:100%; max-width:900px; height:150px;
+    background:var(--bg-card-soft); border:1.5px dashed var(--border-soft); border-radius:18px;
+    overflow:hidden;
+  }
+  .scatter-field .piece{
+    position:absolute; width:42px; height:42px; display:flex; align-items:center; justify-content:center;
+    font-size:1.8rem; user-select:none;
+    transform:translate(-50%,-50%) rotate(var(--r,0deg));
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.15));
+  }
+  .scatter-field.clickable .piece{cursor:pointer; transition:transform .26s var(--ease), opacity .26s var(--ease);}
+  .scatter-field.clickable .piece:hover{transform:translate(-50%,-50%) rotate(var(--r,0deg)) scale(1.2);}
+  .scatter-field .piece.counted{opacity:.18; transform:translate(-50%,-50%) rotate(var(--r,0deg)) scale(.75); cursor:default;}
+  .scatter-field .piece.shake-it{animation:shake .4s;}
+  @keyframes shake{
+    0%,100%{transform:translate(-50%,-50%) rotate(var(--r,0deg));}
+    25%{transform:translate(calc(-50% - 6px),-50%) rotate(var(--r,0deg));}
+    75%{transform:translate(calc(-50% + 6px),-50%) rotate(var(--r,0deg));}
+  }
+  .live-counter{
+    font-family:var(--font-mono); font-weight:700; color:var(--accent2); font-size:1rem;
+    background:var(--accent2-soft); padding:5px 14px; border-radius:999px;
+  }
+
+  /* ---------- Opciones (choice) ---------- */
+  .option-grid{display:flex; gap:14px; flex-wrap:wrap; justify-content:center;}
+  .opt{
+    font-family:var(--font-body); font-weight:700; font-size:.95rem;
+    background:var(--bg-card); border:2px solid var(--border-soft); color:var(--ink);
+    border-radius:16px; padding:13px 22px; cursor:pointer; min-width:120px;
+    transition:transform .32s var(--ease), box-shadow .32s var(--ease), border-color .32s var(--ease), background .32s var(--ease);
+  }
+  .opt:hover{transform:translateY(-3px); box-shadow:0 10px 20px rgba(0,0,0,.1); border-color:var(--accent2);}
+  .opt:active{transform:translateY(-1px) scale(.98);}
+  .opt.selected{border-color:var(--accent2); background:var(--accent2-soft);}
+  .opt.correct{border-color:var(--success); background:var(--success-bg); color:#2f5c3a;}
+  .opt.incorrect{border-color:var(--error); background:var(--error-bg); color:#7a2e24;}
+  .opt:disabled{cursor:default;}
+
+  /* ---------- Respuesta breve ---------- */
+  .answer-row{display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;}
+  .answer-row input[type=number], .answer-row input[type=text]{
+    font-family:var(--font-mono); font-size:1.3rem; font-weight:700; text-align:center;
+    width:110px; padding:10px 8px; border-radius:12px; border:2px solid var(--border-soft);
+    background:#fff; color:var(--ink);
+  }
+  textarea{
+    font-family:var(--font-body); font-size:1rem; width:100%; max-width:760px; min-height:64px;
+    border-radius:14px; border:2px solid var(--border-soft); padding:12px 16px; resize:none;
+    background:#fff; color:var(--ink);
+  }
+  .link-skip{background:none; border:none; color:var(--ink-soft); text-decoration:underline; cursor:pointer; font-family:var(--font-body); font-size:.85rem;}
+
+  /* ---------- Comparación (barras) ---------- */
+  .compare-row{display:flex; gap:34px; align-items:flex-end; justify-content:center; height:180px;}
+  .compare-bar{display:flex; flex-direction:column; align-items:center; gap:6px; width:120px;}
+  .compare-bar .bar{width:56px; border-radius:8px 8px 0 0; background:var(--accent2); transition:height .5s var(--ease);}
+  .compare-bar.me .bar{background:var(--accent);}
+  .compare-bar .val{font-family:var(--font-mono); font-weight:700; font-size:1.2rem;}
+  .compare-bar .who{font-weight:700; font-size:.85rem; color:var(--ink-soft);}
+
+  /* ---------- Montones comparador ---------- */
+  .heap-row{display:flex; gap:40px; justify-content:center;}
+  .heap{
+    width:220px; height:140px; position:relative; background:var(--bg-card-soft);
+    border:1.5px dashed var(--border-soft); border-radius:18px; overflow:hidden; cursor:pointer;
+    transition:transform .32s var(--ease), border-color .32s var(--ease);
+  }
+  .heap:hover{transform:translateY(-3px); border-color:var(--accent2);}
+  .heap.chosen{border-color:var(--accent2); border-style:solid;}
+  .heap span{position:absolute; font-size:1.7rem; filter:drop-shadow(0 2px 3px rgba(0,0,0,.15));}
+  .heap-label{position:absolute; bottom:6px; left:0; right:0; text-align:center; font-family:var(--font-mono); font-weight:700; font-size:.78rem; color:var(--ink-soft);}
+
+  /* ---------- Confetti ---------- */
+  .confetti-piece{position:absolute; top:-10px; border-radius:2px; z-index:50; pointer-events:none;}
+
+  /* ---------- Navbar ---------- */
+  .navbar{
+    position:relative; z-index:5;
+    flex:0 0 auto; display:flex; align-items:center; gap:18px;
+    padding:14px 40px; border-top:1px solid rgba(26,24,20,.08);
+    background:rgba(255,255,255,.35);
+  }
+  .navbar.hidden{visibility:hidden;}
+  .progress-wrap{flex:1; display:flex; flex-direction:column; gap:5px; align-items:center;}
+  .progress-track{width:100%; max-width:640px; height:8px; border-radius:999px; background:rgba(26,24,20,.12); overflow:hidden;}
+  .progress-fill{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width .4s var(--ease);}
+  .progress-text{font-family:var(--font-mono); font-size:.72rem; color:var(--ink-soft);}
+
+  /* ---------- Final screen ---------- */
+  .final{gap:16px; text-align:center;}
+  .final .badge{font-size:2.4rem;}
+  .final h2{font-size:clamp(1.5rem,2.4vw,2.1rem);}
+  .final p{max-width:760px; color:var(--ink-soft); font-size:1.02rem; line-height:1.5;}
+  .pending-question{
+    max-width:820px; background:var(--bg-card); border:2px solid var(--accent);
+    border-radius:18px; padding:20px 28px; font-family:var(--font-title); font-style:italic;
+    font-size:clamp(1.05rem,1.6vw,1.3rem); color:var(--ink); box-shadow:0 10px 26px rgba(184,92,58,.18);
+  }
+  .final-actions{display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:4px;}
+
+  /* ---------- Crédito ---------- */
+  .credit{font-family:var(--font-mono); font-size:.72rem; color:#5a4f43; opacity:.75; letter-spacing:.02em;}
+
+  /* ---------- Reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:.001ms !important; animation-iteration-count:1 !important;
+      transition-duration:.001ms !important; scroll-behavior:auto !important;
     }
-  </style>
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:760px), (max-height:480px){
+    body{overflow-y:auto; padding:16px 0;}
+    .stage{width:100vw; aspect-ratio:auto; min-height:100svh; max-height:none; border-radius:0;}
+    .screen{position:relative; display:none; padding:0 20px; min-height:calc(100svh - 90px); opacity:1 !important; transform:none !important;}
+    .screen.active{display:flex;}
+    .hotspot-row,.heap-row{gap:12px;}
+    .hotspot{width:100%; max-width:280px;}
+  }
+</style>
 </head>
 <body>
-  <a href="index.html" class="back-arrow" aria-label="Volver a la secuencia didáctica">←</a>
 
-  <main class="stage">
-    <section id="introScreen" class="intro-card">
-      <div class="intro-copy">
-        <span class="intro-label">Recuperación diagnóstica · Misión 1</span>
-        <h1>Reconocer la órbita</h1>
-        <h2>Antes de localizar el Sol, debemos comprender la trayectoria.</h2>
-        <p>
-          Un planeta se desplaza alrededor de una estrella siguiendo una trayectoria elíptica.
-          La misión comienza reconociendo la forma de la órbita, su centro, su orientación y sus dimensiones básicas.
-        </p>
-        <div class="mission-list">
-          <div class="mission-item">1. Reconocer la trayectoria elíptica.</div>
-          <div class="mission-item">2. Localizar el centro de la órbita.</div>
-          <div class="mission-item">3. Analizar orientación y semiejes.</div>
+<div class="stage" id="stage">
+  <div class="hud"><span id="timer">00:00</span></div>
+
+  <main class="screens" id="screens">
+
+    <!-- PORTADA -->
+    <section class="screen portada active" data-screen="portada">
+      <span class="eyebrow">🏫 Misión Almacén · Exploración inicial</span>
+      <h1 class="p-title">Primer vistazo al almacén</h1>
+      <p class="p-sub">Llegó una donación grande para la escuela: libros, lápices y piezas de geometría, todo apilado y sin clasificar. La directora necesita un inventario exacto. ¿Podrás contar lo que encuentres?</p>
+      <button class="btn btn-primary p-btn" id="btnComenzar">Explorar 📦</button>
+    </section>
+
+    <!-- PASO 1: Exploración libre -->
+    <section class="screen step" data-screen="1">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 1 de 10 · Observación</span>
+          <h2 class="step-title">¿Qué llegó al almacén?</h2>
+          <p class="step-instruction">Toca las tres cajas para ver qué trajo la donación.</p>
         </div>
-        <button id="startBtn" class="primary-btn">🚀 Iniciar exploración</button>
-      </div>
-      <div class="visual-column">
-        <div class="intro-visual" aria-label="Representación conceptual de una órbita elíptica">
-          <div class="planet">🌍</div>
-          <div class="unknown-sun">?</div>
+        <div class="step-content">
+          <div class="hotspot-row">
+            <button class="hotspot" data-key="libros">
+              <span class="icon">📚</span>
+              <span class="label">Caja de libros</span>
+              <span class="hint">Toca para ver</span>
+              <span class="caption">Cuentos para la biblioteca de aula, ¡vinieron todos mezclados!</span>
+            </button>
+            <button class="hotspot" data-key="lapices">
+              <span class="icon">✏️</span>
+              <span class="label">Bote de lápices</span>
+              <span class="hint">Toca para ver</span>
+              <span class="caption">Lápices de colores para los talleres creativos.</span>
+            </button>
+            <button class="hotspot" data-key="geometria">
+              <span class="icon">📐</span>
+              <span class="label">Caja de geometría</span>
+              <span class="hint">Toca para ver</span>
+              <span class="caption">Piezas para el taller de figuras… ¡ruedan por el piso!</span>
+            </button>
+          </div>
         </div>
-        <p class="visual-caption">La trayectoria está definida, pero la estrella aún no ha sido localizada.</p>
+        <div class="feedback" aria-live="polite"></div>
       </div>
     </section>
 
-    <section id="quizScreen" class="quiz-wrapper hidden">
-      <div class="left-panel">
-        <div class="title-area">
-          <h2>🌌 Misión 1: Reconocer la órbita</h2>
-          <p>Recuperación diagnóstica · Sistema orbital</p>
+    <!-- PASO 2: Selección visual - estimación lápices -->
+    <section class="screen step" data-screen="2">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 2 de 10 · Estimación</span>
+          <h2 class="step-title">Sin contar, ¿cuántos lápices hay?</h2>
+          <p class="step-instruction">Observa un momento y elige la opción que te parezca más cercana.</p>
         </div>
-        <div class="phase-banner" id="phaseBanner">ETAPA 1 · RECONOCER LA TRAYECTORIA</div>
-        <div class="question-text" id="questionText">Cargando...</div>
-        <div class="color-options" id="optionsContainer"></div>
-        <div class="nav-buttons">
-          <button class="nav-btn" id="prevBtn">◀ Anterior</button>
-          <button class="nav-btn" id="nextBtn">Siguiente ▶</button>
+        <div class="step-content">
+          <div class="scatter-field" id="field2"></div>
+          <div class="option-grid" id="opts2">
+            <button class="opt" data-choice="bajo">Menos de 10</button>
+            <button class="opt" data-choice="medio">Entre 10 y 16</button>
+            <button class="opt" data-choice="alto">Más de 16</button>
+          </div>
         </div>
-        <div class="progress" id="progressText">Pregunta 1 / 10</div>
-      </div>
-      <div class="right-canvas">
-        <div class="canvas-box">
-          <canvas id="orbitCanvas" width="560" height="560" aria-label="Representación gráfica de la trayectoria"></canvas>
-        </div>
+        <div class="feedback" aria-live="polite"></div>
       </div>
     </section>
 
-    <section id="completionScreen" class="completion-card hidden">
-      <div class="completion-icon">🛰️</div>
-      <h2>Primera misión completada</h2>
-      <p class="summary">
-        Ya reconocimos la forma de la órbita, localizamos su centro, identificamos su orientación
-        y analizamos sus dimensiones mediante los semiejes.
-      </p>
-      <div class="unresolved">
-        <small>LA PREGUNTA PRINCIPAL SIGUE ABIERTA</small>
-        <strong>¿Dónde debemos colocar el Sol?</strong>
-        <p style="margin-top:8px; color:#d7e9f5;">Para descubrirlo, necesitaremos localizar los focos de la elipse.</p>
-      </div>
-      <div class="completion-actions">
-        <button id="restartBtn" class="secondary-btn">🔄 Revisar la misión</button>
-        <button id="continueBtn" class="primary-btn">Continuar con el análisis orbital →</button>
+    <!-- PASO 3: Respuesta breve - conteo real lápices -->
+    <section class="screen step" data-screen="3">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 3 de 10 · Primer conteo</span>
+          <h2 class="step-title">Ahora cuenta con calma</h2>
+          <p class="step-instruction">Cuenta uno por uno los lápices y escribe cuántos hay en total.</p>
+        </div>
+        <div class="step-content">
+          <div class="scatter-field" id="field3"></div>
+          <div class="answer-row">
+            <input type="number" id="myCountInput" min="0" max="40" aria-label="Cantidad de lápices">
+            <button class="btn btn-primary" id="registerCountBtn">Registrar</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
       </div>
     </section>
+
+    <!-- PASO 4: Semáforo de comprensión -->
+    <section class="screen step" data-screen="4">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 4 de 10 · Autoevaluación</span>
+          <h2 class="step-title">¿Qué tan seguro estás?</h2>
+          <p class="step-instruction">Piensa en el número que acabas de escribir. ¿Confías en que es exacto?</p>
+        </div>
+        <div class="step-content">
+          <div class="option-grid" id="opts4">
+            <button class="opt" data-level="green">🟢 Muy seguro</button>
+            <button class="opt" data-level="yellow">🟡 Más o menos</button>
+            <button class="opt" data-level="red">🔴 Nada seguro</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 5: Comparación con Sofía -->
+    <section class="screen step" data-screen="5">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 5 de 10 · Comparar resultados</span>
+          <h2 class="step-title">Tu compañera Sofía contó el mismo montón</h2>
+          <p class="step-instruction">Mira los dos resultados. ¿Qué creen que pasó?</p>
+        </div>
+        <div class="step-content">
+          <div class="compare-row">
+            <div class="compare-bar me">
+              <span class="val" id="meVal">–</span>
+              <div class="bar" id="meBar" style="height:10px;"></div>
+              <span class="who">Tú</span>
+            </div>
+            <div class="compare-bar">
+              <span class="val" id="sofiaVal">–</span>
+              <div class="bar" id="sofiaBar" style="height:10px;"></div>
+              <span class="who">Sofía</span>
+            </div>
+          </div>
+          <div class="option-grid" id="opts5">
+            <button class="opt" data-reason="a">Uno contó un lápiz dos veces</button>
+            <button class="opt" data-reason="b">Uno se saltó un lápiz</button>
+            <button class="opt" data-reason="c">Cualquiera de las dos cosas</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 6: Reconocimiento V/F -->
+    <section class="screen step" data-screen="6">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 6 de 10 · ¿Verdadero o falso?</span>
+          <h2 class="step-title">Sofía dice…</h2>
+          <p class="step-instruction">"Si cuento rápido, seguro no me equivoco." ¿Es verdadero o falso?</p>
+        </div>
+        <div class="step-content">
+          <div class="option-grid" id="opts6">
+            <button class="opt" data-vf="true">Verdadero</button>
+            <button class="opt" data-vf="false">Falso</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 7: Encuentra el elemento -->
+    <section class="screen step" data-screen="7">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 7 de 10 · Encuentra y cuenta</span>
+          <h2 class="step-title">Busca solo los libros</h2>
+          <p class="step-instruction">Toca únicamente los libros. Ignora los lápices y las piezas de geometría.</p>
+        </div>
+        <div class="step-content">
+          <span class="live-counter">Libros encontrados: <span id="bookCounter">0</span> / 10</span>
+          <div class="scatter-field clickable" id="field7" style="height:170px;"></div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 8: Selección visual - confirmar libros -->
+    <section class="screen step" data-screen="8">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 8 de 10 · Confirmar cantidad</span>
+          <h2 class="step-title">¿Cuántos libros hay en total?</h2>
+          <p class="step-instruction">Según lo que acabas de encontrar, elige el total correcto.</p>
+        </div>
+        <div class="step-content">
+          <div class="option-grid" id="opts8">
+            <button class="opt" data-n="9">9</button>
+            <button class="opt" data-n="10">10</button>
+            <button class="opt" data-n="11">11</button>
+            <button class="opt" data-n="12">12</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 9: Comparador visual - montones de geometría -->
+    <section class="screen step" data-screen="9">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 9 de 10 · A simple vista</span>
+          <h2 class="step-title">¿Qué montón tiene más piezas?</h2>
+          <p class="step-instruction">Sin contar, elige el montón que te parezca más grande.</p>
+        </div>
+        <div class="step-content">
+          <div class="heap-row">
+            <div class="heap" id="heapA" data-heap="A"><span class="heap-label">Montón A</span></div>
+            <div class="heap" id="heapB" data-heap="B"><span class="heap-label">Montón B</span></div>
+          </div>
+          <div class="option-grid" id="opts9">
+            <button class="opt" data-h="A">Montón A</button>
+            <button class="opt" data-h="B">Montón B</button>
+            <button class="opt" data-h="same">Son iguales</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 10: Reflexión abierta -->
+    <section class="screen step" data-screen="10">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 10 de 10 · Tu reflexión</span>
+          <h2 class="step-title">Antes de seguir…</h2>
+          <p class="step-instruction">En tus palabras: ¿qué fue lo más difícil al contar hoy?</p>
+        </div>
+        <div class="step-content">
+          <textarea id="reflectionText" placeholder="Escribe aquí tu idea…" maxlength="220"></textarea>
+          <div class="answer-row">
+            <button class="btn btn-primary" id="saveReflectionBtn">Guardar reflexión</button>
+            <button class="link-skip" id="skipReflectionBtn">Prefiero no escribir</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- FINAL -->
+    <section class="screen final" data-screen="final">
+      <span class="badge">🏆</span>
+      <span class="eyebrow">Exploración completada</span>
+      <h2>¡Buen trabajo explorando el almacén!</h2>
+      <p>Contaste, comparaste con Sofía y descubriste que contar sin un método lleva a dudas, olvidos y repeticiones.</p>
+      <div class="pending-question">"¿Cómo podemos estar seguros de que hemos contado todos los objetos y no hemos contado ninguno dos veces?"</div>
+      <div class="final-actions">
+        <button class="btn btn-ghost" id="btnRevisar">Revisar</button>
+        <button class="btn btn-ghost" id="btnIndex">Volver a la secuencia</button>
+        <button class="btn btn-primary" id="btnDesarrollo">Contar con método →</button>
+      </div>
+    </section>
+
   </main>
 
-  <div class="timer" id="timer">00:00:00</div>
-  <div id="toast" class="toast-message">Correcto</div>
+  <footer class="navbar" id="navbar">
+    <button class="btn btn-ghost" id="btnAnterior">← Anterior</button>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-text" id="progressText">Paso 1 de 10</span>
+    </div>
+    <button class="btn btn-ghost" id="btnReiniciar">Reiniciar</button>
+    <button class="btn btn-primary" id="btnSiguiente">Siguiente →</button>
+  </footer>
+</div>
 
-  <script>
-    // Cronómetro
-    let startTime = Date.now();
-    function formatTime(ms) {
-      const total = Math.floor(ms / 1000);
-      const hours = Math.floor(total / 3600);
-      const minutes = Math.floor((total % 3600) / 60);
-      const seconds = total % 60;
-      return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+<div class="credit">Secuencia321® · Miguel Ubiera</div>
+
+<script>
+(function(){
+  "use strict";
+  const $=(s,c)=> (c||document).querySelector(s);
+  const $$=(s,c)=> [...(c||document).querySelectorAll(s)];
+
+  /* ---------------- Timer ---------------- */
+  let seconds=0;
+  const timerEl=$('#timer');
+  setInterval(()=>{
+    seconds++;
+    const m=String(Math.floor(seconds/60)).padStart(2,'0');
+    const s=String(seconds%60).padStart(2,'0');
+    timerEl.textContent=m+':'+s;
+  },1000);
+
+  /* ---------------- Navegación entre pantallas ---------------- */
+  const order=['portada','1','2','3','4','5','6','7','8','9','10','final'];
+  const screensEl=$('#screens');
+  const screenEls={};
+  order.forEach(k=>{ screenEls[k]=$('.screen[data-screen="'+k+'"]'); });
+  const totalSteps=10;
+  let currentIdx=0;
+  const completed={}; // key -> bool
+
+  const navbar=$('#navbar');
+  const btnAnterior=$('#btnAnterior');
+  const btnSiguiente=$('#btnSiguiente');
+  const progressFill=$('#progressFill');
+  const progressText=$('#progressText');
+
+  function keyAt(i){ return order[i]; }
+
+  function updateNav(){
+    const key=keyAt(currentIdx);
+    const isPortada = key==='portada';
+    const isFinal = key==='final';
+    navbar.classList.toggle('hidden', isPortada || isFinal);
+    if(isPortada || isFinal) return;
+    const stepNum=parseInt(key,10);
+    progressFill.style.width=((stepNum-1)/(totalSteps-1)*100)+'%';
+    progressText.textContent='Paso '+stepNum+' de '+totalSteps;
+    btnAnterior.disabled = (stepNum===1);
+    const isLast = stepNum===totalSteps;
+    btnSiguiente.textContent = isLast? 'Finalizar ▶' : 'Siguiente →';
+    btnSiguiente.disabled = !completed[key];
+  }
+
+  function goTo(idx, dir){
+    idx=Math.max(0, Math.min(order.length-1, idx));
+    if(idx===currentIdx) return;
+    screensEl.classList.toggle('dir-back', dir<0);
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        screenEls[keyAt(currentIdx)].classList.remove('active');
+        currentIdx=idx;
+        screenEls[keyAt(currentIdx)].classList.add('active');
+        updateNav();
+      });
+    });
+  }
+
+  function markComplete(key){ completed[key]=true; updateNav(); }
+
+  btnSiguiente.addEventListener('click', ()=>{
+    if(btnSiguiente.disabled) return;
+    if(currentIdx===order.length-2){ goTo(order.length-1, 1); return; }
+    goTo(currentIdx+1, 1);
+  });
+  btnAnterior.addEventListener('click', ()=> goTo(currentIdx-1,-1));
+  $('#btnReiniciar').addEventListener('click', resetAll);
+  $('#btnComenzar').addEventListener('click', ()=> goTo(1,1));
+  $('#btnRevisar').addEventListener('click', ()=> goTo(1,-1));
+  $('#btnIndex').addEventListener('click', ()=> location.href='index.html');
+  $('#btnDesarrollo').addEventListener('click', ()=> location.href='desarrollo.html');
+
+  function resetAll(){
+    goTo(0,-1);
+    Object.keys(completed).forEach(k=> delete completed[k]);
+    $$('.opt').forEach(o=>{ o.classList.remove('selected','correct','incorrect'); o.disabled=false; });
+    $$('.feedback').forEach(f=>{ f.className='feedback'; f.innerHTML=''; });
+    $$('.hotspot').forEach(h=> h.classList.remove('open'));
+    discovered={libros:false,lapices:false,geometria:false};
+    $('#myCountInput').value='';
+    $('#reflectionText').value='';
+    buildScatter($('#field2'), pencilCount, false);
+    buildScatter($('#field3'), pencilCount, false);
+    buildBooksField();
+    buildHeaps();
+    $('#bookCounter').textContent='0';
+    booksFoundCount=0;
+    $('#meVal').textContent='–';
+    $('#meBar').style.height='10px';
+    $('#sofiaVal').textContent='–';
+    $('#sofiaBar').style.height='10px';
+    updateNav();
+  }
+
+  /* ---------------- Confeti ---------------- */
+  const stage=$('#stage');
+  const confettiColors=['#b85c3a','#2a5f7a','#4c8a5c','#e4a24a','#f0ece6'];
+  function confettiBurst(x,y){
+    for(let i=0;i<42;i++){
+      const p=document.createElement('div');
+      p.className='confetti-piece';
+      const size=6+Math.random()*8;
+      p.style.width=size+'px'; p.style.height=(size*.6)+'px';
+      p.style.left=x+'px'; p.style.top=y+'px';
+      p.style.background=confettiColors[i%confettiColors.length];
+      const dx=(Math.random()-0.5)*320;
+      const dy=140+Math.random()*190;
+      const rot=(Math.random()-0.5)*620;
+      p.animate([
+        {transform:'translate(0,0) rotate(0deg)', opacity:1},
+        {transform:`translate(${dx}px, ${dy}px) rotate(${rot}deg)`, opacity:0}
+      ],{duration:1450+Math.random()*200, easing:'cubic-bezier(.2,.7,.4,1)'});
+      stage.appendChild(p);
+      setTimeout(()=>p.remove(),1700);
     }
-    setInterval(() => {
-      document.getElementById('timer').textContent = formatTime(Date.now() - startTime);
-    }, 1000);
+  }
+  function confettiFromEl(el){
+    const r=el.getBoundingClientRect();
+    const sr=stage.getBoundingClientRect();
+    confettiBurst(r.left-sr.left+r.width/2, r.top-sr.top+r.height/2);
+  }
 
-    // Pantallas y controles
-    const introScreen = document.getElementById('introScreen');
-    const quizScreen = document.getElementById('quizScreen');
-    const completionScreen = document.getElementById('completionScreen');
-    const startBtn = document.getElementById('startBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const continueBtn = document.getElementById('continueBtn');
-    const questionText = document.getElementById('questionText');
-    const optionsContainer = document.getElementById('optionsContainer');
-    const progressText = document.getElementById('progressText');
-    const phaseBanner = document.getElementById('phaseBanner');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const toast = document.getElementById('toast');
+  function shakeEl(el){
+    el.style.setProperty('--r', (Math.random()*10-5)+'deg');
+    el.classList.remove('shake-it'); void el.offsetWidth; el.classList.add('shake-it');
+  }
 
-    // Canvas
-    const canvas = document.getElementById('orbitCanvas');
-    const ctx = canvas.getContext('2d');
-    const SIZE = 560;
-    const X_MIN = -12, X_MAX = 12, Y_MIN = -12, Y_MAX = 12;
+  function showFeedback(container,type,html){
+    const f=container.querySelector('.feedback');
+    f.className='feedback '+type+' show';
+    f.innerHTML=html;
+  }
 
-    function worldToCanvas(x, y) {
-      return {
-        x: ((x - X_MIN) / (X_MAX - X_MIN)) * SIZE,
-        y: SIZE - ((y - Y_MIN) / (Y_MAX - Y_MIN)) * SIZE
+  /* ---------------- Utilidad: dispersar iconos sin superponerlos ---------------- */
+  function scatterOne(container, emoji, leftPct, topPct){
+    const el=document.createElement('span');
+    el.className='piece';
+    el.textContent=emoji;
+    const rot=(Math.random()*50-25);
+    el.style.left=leftPct+'%'; el.style.top=topPct+'%';
+    el.style.setProperty('--r',rot+'deg');
+    if(emoji==='✏️'){ el.style.filter='hue-rotate('+Math.floor(Math.random()*360)+'deg) drop-shadow(0 2px 3px rgba(0,0,0,.15))'; }
+    container.appendChild(el);
+    return el;
+  }
+
+  // Coloca n elementos en una cuadrícula invisible con desplazamiento aleatorio,
+  // de modo que el conjunto se vea desordenado pero sin que los iconos se tapen entre sí.
+  function placeItems(container, list){
+    const n=list.length;
+    const cols=Math.max(1,Math.ceil(Math.sqrt(n*2.6)));
+    const rows=Math.max(1,Math.ceil(n/cols));
+    const cellW=100/cols, cellH=100/rows;
+    const cells=[];
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) cells.push([r,c]);
+    cells.sort(()=>Math.random()-0.5);
+    const used=cells.slice(0,n);
+    return list.map((item,i)=>{
+      const [r,c]=used[i];
+      const jitterX=(Math.random()*0.44-0.22)*cellW;
+      const jitterY=(Math.random()*0.44-0.22)*cellH;
+      const cx=Math.min(97,Math.max(3, c*cellW + cellW/2 + jitterX));
+      const cy=Math.min(94,Math.max(6, r*cellH + cellH/2 + jitterY));
+      const el=scatterOne(container, item.emoji, cx, cy);
+      if(item.isBook!==undefined) el.dataset.isBook=String(item.isBook);
+      return el;
+    });
+  }
+
+  const pencilCount=13;
+  function buildScatter(container,count){
+    container.innerHTML='';
+    const list=Array.from({length:count},()=>({emoji:'✏️'}));
+    placeItems(container,list);
+  }
+  buildScatter($('#field2'),pencilCount);
+  buildScatter($('#field3'),pencilCount);
+
+  /* ---------------- Paso 1: hotspots ---------------- */
+  let discovered={libros:false,lapices:false,geometria:false};
+  $$('.hotspot').forEach(h=>{
+    h.addEventListener('click', ()=>{
+      const key=h.dataset.key;
+      h.classList.add('open');
+      discovered[key]=true;
+      const container=h.closest('.screen');
+      if(Object.values(discovered).every(Boolean)){
+        showFeedback(container,'success','✅ Buen ojo. Ahora sabemos qué llegó… pero nadie sabe todavía cuánto hay de cada cosa.');
+        markComplete('1');
+      }
+    });
+  });
+
+  /* ---------------- Paso 2: estimación ---------------- */
+  $$('#opts2 .opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      $$('#opts2 .opt').forEach(x=>x.classList.remove('selected'));
+      o.classList.add('selected');
+      const container=o.closest('.screen');
+      const inRange = o.dataset.choice==='medio';
+      if(inRange){
+        showFeedback(container,'success','✅ Buena intuición: la cantidad real está en ese rango. Vamos a comprobarlo con exactitud.');
+      }else{
+        showFeedback(container,'neutral','🤔 Anotado. Ahora comprobemos la cantidad exacta, contando con calma.');
+      }
+      markComplete('2');
+    });
+  });
+
+  /* ---------------- Paso 3: conteo real ---------------- */
+  $('#registerCountBtn').addEventListener('click', ()=>{
+    const val=$('#myCountInput').value;
+    const container=$('#registerCountBtn').closest('.screen');
+    if(val===''){
+      showFeedback(container,'error','Escribe un número antes de registrar tu conteo.');
+      return;
+    }
+    myPencilCount=parseInt(val,10);
+    showFeedback(container,'neutral','📝 Quedó registrado: dijiste que hay <strong>'+myPencilCount+'</strong> lápices.');
+    $('#meVal').textContent=myPencilCount;
+    markComplete('3');
+  });
+  let myPencilCount=null;
+
+  /* ---------------- Paso 4: semáforo ---------------- */
+  $$('#opts4 .opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      $$('#opts4 .opt').forEach(x=>x.classList.remove('selected'));
+      o.classList.add('selected');
+      const container=o.closest('.screen');
+      const msgs={
+        green:'Vamos a comprobar qué tan firme era esa seguridad.',
+        yellow:'Es normal dudar cuando contamos sin un método claro.',
+        red:'Esa sensación de duda es una gran pista: necesitamos un método.'
       };
-    }
-    function clearCanvas() {
-      ctx.clearRect(0, 0, SIZE, SIZE);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, SIZE, SIZE);
-    }
-    function drawGridAndAxes() {
-      clearCanvas();
-      ctx.save();
-      ctx.strokeStyle = '#b7c4d4';
-      ctx.lineWidth = .65;
-      ctx.globalAlpha = .72;
-      for (let x = X_MIN; x <= X_MAX; x++) {
-        const p1 = worldToCanvas(x, Y_MIN), p2 = worldToCanvas(x, Y_MAX);
-        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      showFeedback(container,'neutral',msgs[o.dataset.level]);
+      markComplete('4');
+    });
+  });
+
+  /* ---------------- Paso 5: comparación con Sofía ---------------- */
+  const screen5=screenEls['5'];
+  screen5.addEventListener('transitionstart', e=>{
+    if(e.target===screen5 && screen5.classList.contains('active')) animateCompare();
+  });
+  function animateCompare(){
+    const me=myPencilCount||0;
+    $('#meVal').textContent=me;
+    $('#meBar').style.height=Math.max(10, me*6)+'px';
+    // Sofía siempre difiere en exactamente 1: así "contó uno dos veces" y "se saltó uno"
+    // siguen siendo explicaciones posibles sin importar lo que el estudiante haya escrito.
+    let sofia = me + (Math.random()<0.5 ? 1 : -1);
+    if(sofia<1) sofia = me+1;
+    $('#sofiaVal').textContent=sofia;
+    $('#sofiaBar').style.height=Math.max(10, sofia*6)+'px';
+  }
+  $$('#opts5 .opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      $$('#opts5 .opt').forEach(x=>x.classList.remove('selected'));
+      o.classList.add('selected');
+      const container=o.closest('.screen');
+      if(o.dataset.reason==='c'){
+        showFeedback(container,'success','✅ Exacto: cualquiera de esos errores pudo pasar. Por ahora no hay forma de saber cuál.');
+      }else{
+        showFeedback(container,'neutral','Puede ser justo eso… o también la otra razón. Sin un método, no hay forma de saberlo con certeza.');
       }
-      for (let y = Y_MIN; y <= Y_MAX; y++) {
-        const p1 = worldToCanvas(X_MIN, y), p2 = worldToCanvas(X_MAX, y);
-        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      markComplete('5');
+    });
+  });
+
+  /* ---------------- Paso 6: verdadero/falso ---------------- */
+  $$('#opts6 .opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      $$('#opts6 .opt').forEach(x=>x.disabled=true);
+      const container=o.closest('.screen');
+      const isFalse = o.dataset.vf==='false';
+      o.classList.add(isFalse? 'correct':'incorrect');
+      if(isFalse){
+        showFeedback(container,'success','✅ Falso. Contar rápido, sin fijarte en cada objeto, es justo lo que provoca saltos y repeticiones.');
+      }else{
+        showFeedback(container,'error','❌ En realidad es falso: contar rápido, sin fijarte en cada objeto, provoca errores.');
       }
-      ctx.globalAlpha = 1;
-      const x1 = worldToCanvas(X_MIN,0), x2 = worldToCanvas(X_MAX,0);
-      const y1 = worldToCanvas(0,Y_MIN), y2 = worldToCanvas(0,Y_MAX);
-      ctx.strokeStyle = '#1a5f7a'; ctx.lineWidth = 2.3;
-      ctx.beginPath(); ctx.moveTo(x1.x,x1.y); ctx.lineTo(x2.x,x2.y); ctx.moveTo(y1.x,y1.y); ctx.lineTo(y2.x,y2.y); ctx.stroke();
-      ctx.font = "bold 10px 'Courier New', monospace";
-      ctx.fillStyle = '#244e67';
-      for (let n = -12; n <= 12; n += 2) {
-        if (n !== 0) {
-          const px = worldToCanvas(n,0); ctx.fillText(String(n), px.x-6, px.y-5);
-          const py = worldToCanvas(0,n); ctx.fillText(String(n), py.x+6, py.y+4);
-        }
-      }
-      ctx.restore();
-    }
-    function drawEllipse(h, k, rx, ry, color='#e67e22') {
-      ctx.beginPath();
-      for (let i=0; i<=220; i++) {
-        const t = (i/220)*Math.PI*2;
-        const p = worldToCanvas(h + rx*Math.cos(t), k + ry*Math.sin(t));
-        if (i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
-      }
-      ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
-    }
-    function drawSymmetry(h,k) {
-      ctx.save(); ctx.setLineDash([6,8]); ctx.strokeStyle='#e68a3e'; ctx.lineWidth=1.4;
-      let a=worldToCanvas(X_MIN,k), b=worldToCanvas(X_MAX,k);
-      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-      a=worldToCanvas(h,Y_MIN); b=worldToCanvas(h,Y_MAX);
-      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-      ctx.restore();
-    }
-    function drawCenter(h,k) {
-      const p=worldToCanvas(h,k);
-      ctx.beginPath(); ctx.arc(p.x,p.y,7,0,Math.PI*2); ctx.fillStyle='#1a5f82'; ctx.fill();
-      ctx.font="bold 12px 'Segoe UI'"; ctx.fillStyle='#143a50'; ctx.fillText(`Centro (${h}, ${k})`,p.x+10,p.y-9);
-    }
-    function drawOrbit(data) {
-      drawGridAndAxes();
-      drawSymmetry(data.h,data.k);
-      drawEllipse(data.h,data.k,data.rx,data.ry);
-      if (data.showCenter) drawCenter(data.h,data.k);
-      if (data.labels) {
-        ctx.font="bold 13px 'Segoe UI'"; ctx.fillStyle='#28576d';
-        const right=worldToCanvas(data.h+data.rx,data.k);
-        const top=worldToCanvas(data.h,data.k+data.ry);
-        ctx.fillText(`a = ${data.rx}`, right.x-38, right.y-12);
-        ctx.fillText(`b = ${data.ry}`, top.x+10, top.y+18);
-      }
-    }
-    function drawTrajectoryChoices() {
-      clearCanvas();
-      ctx.fillStyle='#f7fbff'; ctx.fillRect(0,0,SIZE,SIZE);
-      ctx.font="bold 15px 'Segoe UI'"; ctx.fillStyle='#315b6d'; ctx.fillText('Tres posibles trayectorias orbitales',155,48);
-      const items=[
-        {x:115,y:285,kind:'circle',color:'#e34234',label:'A'},
-        {x:280,y:285,kind:'ellipse',color:'#f3b33d',label:'B'},
-        {x:445,y:285,kind:'parabola',color:'#5fad56',label:'C'}
-      ];
-      items.forEach(item=>{
-        ctx.strokeStyle=item.color; ctx.lineWidth=5;
-        if(item.kind==='circle') { ctx.beginPath(); ctx.arc(item.x,item.y,58,0,Math.PI*2); ctx.stroke(); }
-        if(item.kind==='ellipse') { ctx.beginPath(); ctx.ellipse(item.x,item.y,78,48,0,0,Math.PI*2); ctx.stroke(); }
-        if(item.kind==='parabola') {
-          ctx.beginPath();
-          for(let i=-55;i<=55;i++){
-            const x=item.x+i, y=item.y-55+(i*i)/55;
-            if(i===-55) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      markComplete('6');
+    });
+  });
+
+  /* ---------------- Paso 7: encuentra los libros ---------------- */
+  const bookEmojis=['📕','📗','📘','📙','📓','📔'];
+  const distractors=['✏️','🔺','🔷','⬜','🔵'];
+  let booksFoundCount=0;
+  const BOOK_TARGET=10;
+  function buildBooksField(){
+    const field=$('#field7');
+    field.innerHTML='';
+    const items=[];
+    for(let i=0;i<BOOK_TARGET;i++) items.push({emoji:bookEmojis[i%bookEmojis.length], isBook:true});
+    for(let i=0;i<7;i++) items.push({emoji:distractors[i%distractors.length], isBook:false});
+    items.sort(()=>Math.random()-0.5);
+    const elements=placeItems(field,items);
+    elements.forEach(el=>{
+      el.tabIndex=0;
+      el.setAttribute('role','button');
+      el.setAttribute('aria-label', el.dataset.isBook==='true' ? 'Libro' : 'Objeto que no es un libro');
+      el.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); } });
+      el.addEventListener('click', ()=>{
+        const container=field.closest('.screen');
+        if(el.classList.contains('counted')) return;
+        if(el.dataset.isBook==='true'){
+          el.classList.add('counted');
+          booksFoundCount++;
+          $('#bookCounter').textContent=booksFoundCount;
+          if(booksFoundCount===BOOK_TARGET){
+            showFeedback(container,'success','✅ Encontraste los 10 libros. ¿Los contaste todos sin repetir ninguno? Vamos a verlo.');
+            markComplete('7');
           }
-          ctx.stroke();
+        }else{
+          shakeEl(el);
+          showFeedback(container,'error','Eso no es un libro. Sigue buscando.');
         }
-        ctx.fillStyle=item.color; ctx.font="bold 14px 'Segoe UI'"; ctx.fillText(item.label,item.x-25,390);
       });
-    }
-    function drawCircleVsEllipse() {
-      clearCanvas();
-      ctx.fillStyle = '#f7fbff';
-      ctx.fillRect(0, 0, SIZE, SIZE);
-      ctx.font = "bold 15px 'Segoe UI'";
-      ctx.fillStyle = '#315b6d';
-      ctx.fillText('Compara las tres trayectorias', 175, 58);
+    });
+  }
+  buildBooksField();
 
-      // A: circunferencia verde
-      ctx.strokeStyle = '#5fad56';
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(110, 280, 60, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // B: elipse amarilla
-      ctx.strokeStyle = '#f3b33d';
-      ctx.beginPath();
-      ctx.ellipse(280, 280, 78, 48, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // C: triángulo rojo
-      ctx.strokeStyle = '#e34234';
-      ctx.beginPath();
-      ctx.moveTo(450, 215);
-      ctx.lineTo(390, 345);
-      ctx.lineTo(510, 345);
-      ctx.closePath();
-      ctx.stroke();
-
-      ctx.font = "bold 17px 'Segoe UI'";
-      ctx.fillStyle = '#315b6d';
-      ctx.fillText('A', 104, 405);
-      ctx.fillText('B', 274, 405);
-      ctx.fillText('C', 444, 405);
-    }
-
-    const questions = [
-      {
-        phase:'ETAPA 1 · RECONOCER LA TRAYECTORIA',
-        text:'🔭 ¿Cuál de estas posibles trayectorias tiene forma de elipse?',
-        visual:'choices',
-        options:[
-          {color:'red',text:'A',correct:false},
-          {color:'yellow',text:'B',correct:true},
-          {color:'green',text:'C',correct:false}
-        ]
-      },
-      {
-        phase:'ETAPA 1 · RECONOCER LA TRAYECTORIA',
-        text:'🛰️ ¿Cuál de las tres trayectorias es elíptica?',
-        visual:'circleVsEllipse',
-        options:[
-          {color:'green',text:'A',correct:false},
-          {color:'yellow',text:'B',correct:true},
-          {color:'red',text:'C',correct:false}
-        ]
-      },
-      {
-        phase:'ETAPA 2 · LOCALIZAR EL CENTRO',
-        text:'🎯 ¿En qué punto está el centro de esta órbita?',
-        orbit:{h:3,k:2,rx:4,ry:2.5,showCenter:false},
-        options:[
-          {color:'red',text:'(3, 2)',correct:true},
-          {color:'yellow',text:'(0, 0)',correct:false},
-          {color:'green',text:'(-3, -2)',correct:false}
-        ]
-      },
-      {
-        phase:'ETAPA 2 · LOCALIZAR EL CENTRO',
-        text:'🎯 ¿En qué punto está el centro de esta órbita?',
-        orbit:{h:0,k:0,rx:5,ry:3,showCenter:false},
-        options:[
-          {color:'red',text:'(2, -1)',correct:false},
-          {color:'yellow',text:'(0, 0)',correct:true},
-          {color:'green',text:'(-2, 1)',correct:false}
-        ]
-      },
-      {
-        phase:'ETAPA 2 · LOCALIZAR EL CENTRO',
-        text:'🎯 ¿En qué punto está el centro de esta órbita?',
-        orbit:{h:-2,k:1,rx:4,ry:2.5,showCenter:false},
-        options:[
-          {color:'red',text:'(2, -1)',correct:false},
-          {color:'yellow',text:'(0, 0)',correct:false},
-          {color:'green',text:'(-2, 1)',correct:true}
-        ]
-      },
-      {
-        phase:'ETAPA 3 · ANALIZAR LA ORIENTACIÓN',
-        text:'📐 ¿En qué dirección se extiende principalmente esta órbita?',
-        orbit:{h:1,k:-1,rx:5,ry:3,showCenter:false},
-        options:[
-          {color:'red',text:'Horizontal',correct:true},
-          {color:'yellow',text:'Vertical',correct:false},
-          {color:'green',text:'Igual en ambas direcciones',correct:false}
-        ]
-      },
-      {
-        phase:'ETAPA 3 · ANALIZAR LA ORIENTACIÓN',
-        text:'📐 ¿En qué dirección se extiende principalmente esta órbita?',
-        orbit:{h:-1,k:2,rx:3,ry:5,showCenter:false},
-        options:[
-          {color:'red',text:'Horizontal',correct:false},
-          {color:'yellow',text:'Vertical',correct:true},
-          {color:'green',text:'Igual en ambas direcciones',correct:false}
-        ]
-      },
-      {
-        phase:'ETAPA 4 · RECONOCER LAS DIMENSIONES',
-        text:'📏 ¿Cuál es el valor del semieje mayor a?',
-        orbit:{h:0,k:0,rx:5,ry:3,showCenter:false,labels:false},
-        options:[
-          {color:'red',text:'a = 3',correct:false},
-          {color:'yellow',text:'a = 4',correct:false},
-          {color:'green',text:'a = 5',correct:true}
-        ]
-      },
-      {
-        phase:'ETAPA 4 · RECONOCER LAS DIMENSIONES',
-        text:'📏 ¿Cuál es el valor del semieje menor b?',
-        orbit:{h:0,k:0,rx:5,ry:3,showCenter:false,labels:false},
-        options:[
-          {color:'red',text:'b = 3',correct:true},
-          {color:'yellow',text:'b = 5',correct:false},
-          {color:'green',text:'b = 2',correct:false}
-        ]
-      },
-      {
-        phase:'ETAPA 4 · RECONOCER LAS DIMENSIONES',
-        text:'📏 En esta órbita, ¿cuáles son los valores correctos de los semiejes?',
-        orbit:{h:-1,k:2,rx:7,ry:4,showCenter:false,labels:false},
-        options:[
-          {color:'red',text:'a = 4 y b = 7',correct:false},
-          {color:'yellow',text:'a = 7 y b = 4',correct:true},
-          {color:'green',text:'a = 7 y b = 3',correct:false}
-        ]
+  /* ---------------- Paso 8: confirmar total libros ---------------- */
+  $$('#opts8 .opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      $$('#opts8 .opt').forEach(x=>{x.disabled=true; x.classList.remove('selected');});
+      o.classList.add('selected');
+      const container=o.closest('.screen');
+      const correct = o.dataset.n==='10';
+      o.classList.add(correct?'correct':'incorrect');
+      if(correct){
+        showFeedback(container,'success','✅ Coincide con lo que encontraste: 10 libros.');
+      }else{
+        showFeedback(container,'error','Hace un momento encontraste 10 libros. A veces hasta de nuestro propio conteo dudamos.');
       }
-    ];
+      markComplete('8');
+    });
+  });
 
-    let currentIndex = 0;
-    let waiting = false;
-    let toastTimeout = null;
-
-    function showToast(message, correct) {
-      clearTimeout(toastTimeout);
-      toast.textContent = correct ? `✓ ${message}` : `✕ ${message}`;
-      toast.className = `toast-message toast-show ${correct ? 'toast-correct' : 'toast-wrong'}`;
-      toastTimeout = setTimeout(() => toast.classList.remove('toast-show'), 900);
-    }
-    function renderQuestion() {
-      const q = questions[currentIndex];
-      phaseBanner.textContent = q.phase;
-      questionText.textContent = q.text;
-      progressText.textContent = `Pregunta ${currentIndex + 1} / ${questions.length}`;
-      prevBtn.disabled = currentIndex === 0;
-      nextBtn.disabled = currentIndex === questions.length - 1;
-      optionsContainer.innerHTML = '';
-      q.options.forEach(opt => {
-        const button = document.createElement('button');
-        button.className = `color-btn color-${opt.color}`;
-        button.textContent = opt.text;
-        button.addEventListener('click', () => handleAnswer(opt.correct));
-        optionsContainer.appendChild(button);
-      });
-      if (q.visual === 'choices') drawTrajectoryChoices();
-      else if (q.visual === 'circleVsEllipse') drawCircleVsEllipse();
-      else if (q.orbit) drawOrbit(q.orbit);
-      waiting = false;
-    }
-    function handleAnswer(correct) {
-      if (waiting) return;
-      if (!correct) {
-        showToast('Observa nuevamente la trayectoria', false);
-        return;
+  /* ---------------- Paso 9: montones de geometría ---------------- */
+  const shapeEmojis=['🔺','🔷','⬜','🔵','🔶'];
+  function buildHeaps(){
+    ['heapA','heapB'].forEach((id,idx)=>{
+      const heap=$('#'+id);
+      [...heap.querySelectorAll('span:not(.heap-label)')].forEach(n=>n.remove());
+      const count = idx===0? 9:8;
+      // Cuadrícula + desplazamiento aleatorio: evita que las piezas se superpongan entre sí
+      // o invadan la etiqueta "Montón A/B" en la parte inferior del recuadro.
+      const cols=Math.max(1,Math.ceil(Math.sqrt(count*1.8)));
+      const rows=Math.max(1,Math.ceil(count/cols));
+      const cellW=100/cols, cellH=62/rows;
+      const cells=[];
+      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) cells.push([r,c]);
+      cells.sort(()=>Math.random()-0.5);
+      const used=cells.slice(0,count);
+      for(let i=0;i<count;i++){
+        const [r,c]=used[i];
+        const jitterX=(Math.random()*0.4-0.2)*cellW;
+        const jitterY=(Math.random()*0.4-0.2)*cellH;
+        const left=Math.min(92,Math.max(6, c*cellW+cellW/2+jitterX));
+        const top=Math.min(54,Math.max(8, r*cellH+cellH/2+jitterY));
+        const s=document.createElement('span');
+        s.textContent=shapeEmojis[i%shapeEmojis.length];
+        s.style.left=left+'%';
+        s.style.top=top+'%';
+        s.style.transform='translate(-50%,-50%) rotate('+(Math.random()*40-20)+'deg)';
+        heap.appendChild(s);
       }
-      showToast('Respuesta correcta', true);
-      waiting = true;
-      setTimeout(() => {
-        if (currentIndex < questions.length - 1) {
-          currentIndex++;
-          renderQuestion();
-        } else {
-          quizScreen.classList.add('hidden');
-          completionScreen.classList.remove('hidden');
-        }
-      }, 650);
-    }
+    });
+  }
+  buildHeaps();
+  $$('#opts9 .opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      $$('#opts9 .opt').forEach(x=>x.classList.remove('selected'));
+      o.classList.add('selected');
+      const container=o.closest('.screen');
+      showFeedback(container,'neutral','Sorpresa: el Montón A tenía 9 piezas y el Montón B tenía 8. ¿Las adivinaste solo con la vista?');
+      markComplete('9');
+    });
+  });
 
-    startBtn.addEventListener('click', () => {
-      introScreen.classList.add('hidden');
-      quizScreen.classList.remove('hidden');
-      startTime = Date.now();
-      currentIndex = 0;
-      renderQuestion();
-    });
-    prevBtn.addEventListener('click', () => {
-      if (!waiting && currentIndex > 0) { currentIndex--; renderQuestion(); }
-    });
-    nextBtn.addEventListener('click', () => {
-      if (!waiting && currentIndex < questions.length - 1) { currentIndex++; renderQuestion(); }
-    });
-    restartBtn.addEventListener('click', () => {
-      completionScreen.classList.add('hidden');
-      quizScreen.classList.remove('hidden');
-      currentIndex = 0; startTime = Date.now(); renderQuestion();
-    });
-    continueBtn.addEventListener('click', () => { window.location.href = 'desarrollo.html'; });
-  </script>
+  /* ---------------- Paso 10: reflexión ---------------- */
+  function finishReflection(){
+    const container=$('#saveReflectionBtn').closest('.screen');
+    showFeedback(container,'success','Gracias por compartirlo. Muchas personas sienten lo mismo: contar sin método es más difícil de lo que parece.');
+    markComplete('10');
+  }
+  $('#saveReflectionBtn').addEventListener('click', finishReflection);
+  $('#skipReflectionBtn').addEventListener('click', finishReflection);
+
+  /* ---------------- Confeti en aciertos clave ---------------- */
+  document.addEventListener('click', (e)=>{
+    const t=e.target;
+    if(t.classList && t.classList.contains('opt') && t.classList.contains('correct')){
+      confettiFromEl(t);
+    }
+    if(t.id==='registerCountBtn' || t.id==='saveReflectionBtn'){
+      confettiFromEl(t);
+    }
+  });
+
+  updateNav();
+})();
+</script>
 </body>
 </html>
