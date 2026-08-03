@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,7 +21,7 @@
     --accent-soft:rgba(184,92,58,.13);
     --accent2:#2a5f7a;
     --accent2-soft:rgba(42,95,122,.13);
-    --success:#4c8a5c;
+    --success:#3a7549;
     --success-bg:rgba(76,138,92,.14);
     --error:#c0483a;
     --error-bg:rgba(192,72,58,.13);
@@ -150,9 +151,9 @@
     opacity:0; transform:translateY(4px); transition:opacity .38s var(--ease), transform .38s var(--ease), padding .38s var(--ease);
   }
   .feedback.show{opacity:1; transform:translateY(0); padding:9px 18px;}
-  .feedback.success{background:var(--success-bg); color:#2f5c3a;}
-  .feedback.error{background:var(--error-bg); color:#7a2e24;}
-  .feedback.neutral{background:var(--accent2-soft); color:#1c4258;}
+  .feedback.success{background:var(--success); color:#fff;}
+  .feedback.error{background:var(--error); color:#fff;}
+  .feedback.neutral{background:var(--accent2); color:#fff;}
 
   /* ---------- Hotspots (Paso 1) ---------- */
   .hotspot-row{display:flex; gap:22px; justify-content:center; flex-wrap:wrap;}
@@ -212,8 +213,8 @@
   .opt:hover{transform:translateY(-3px); box-shadow:0 10px 20px rgba(0,0,0,.1); border-color:var(--accent2);}
   .opt:active{transform:translateY(-1px) scale(.98);}
   .opt.selected{border-color:var(--accent2); background:var(--accent2-soft);}
-  .opt.correct{border-color:var(--success); background:var(--success-bg); color:#2f5c3a;}
-  .opt.incorrect{border-color:var(--error); background:var(--error-bg); color:#7a2e24;}
+  .opt.correct{border-color:var(--success); background:var(--success); color:#fff;}
+  .opt.incorrect{border-color:var(--error); background:var(--error); color:#fff;}
   .opt:disabled{cursor:default;}
 
   /* ---------- Respuesta breve ---------- */
@@ -658,6 +659,7 @@
     $('#meBar').style.height='10px';
     $('#sofiaVal').textContent='–';
     $('#sofiaBar').style.height='10px';
+    sofiaDirection=null;
     updateNav();
   }
 
@@ -665,22 +667,22 @@
   const stage=$('#stage');
   const confettiColors=['#b85c3a','#2a5f7a','#4c8a5c','#e4a24a','#f0ece6'];
   function confettiBurst(x,y){
-    for(let i=0;i<42;i++){
+    for(let i=0;i<70;i++){
       const p=document.createElement('div');
       p.className='confetti-piece';
-      const size=6+Math.random()*8;
+      const size=7+Math.random()*10;
       p.style.width=size+'px'; p.style.height=(size*.6)+'px';
       p.style.left=x+'px'; p.style.top=y+'px';
       p.style.background=confettiColors[i%confettiColors.length];
-      const dx=(Math.random()-0.5)*320;
-      const dy=140+Math.random()*190;
-      const rot=(Math.random()-0.5)*620;
+      const dx=(Math.random()-0.5)*560;
+      const dy=160+Math.random()*280;
+      const rot=(Math.random()-0.5)*700;
       p.animate([
         {transform:'translate(0,0) rotate(0deg)', opacity:1},
         {transform:`translate(${dx}px, ${dy}px) rotate(${rot}deg)`, opacity:0}
-      ],{duration:1450+Math.random()*200, easing:'cubic-bezier(.2,.7,.4,1)'});
+      ],{duration:1600+Math.random()*300, easing:'cubic-bezier(.2,.7,.4,1)'});
       stage.appendChild(p);
-      setTimeout(()=>p.remove(),1700);
+      setTimeout(()=>p.remove(),1950);
     }
   }
   function confettiFromEl(el){
@@ -812,26 +814,44 @@
   screen5.addEventListener('transitionstart', e=>{
     if(e.target===screen5 && screen5.classList.contains('active')) animateCompare();
   });
+  let sofiaDirection=null; // 'high' | 'low' -- la dirección de la diferencia determina cuál error ocurrió
   function animateCompare(){
     const me=myPencilCount||0;
     $('#meVal').textContent=me;
     $('#meBar').style.height=Math.max(10, me*6)+'px';
-    // Sofía siempre difiere en exactamente 1: así "contó uno dos veces" y "se saltó uno"
-    // siguen siendo explicaciones posibles sin importar lo que el estudiante haya escrito.
-    let sofia = me + (Math.random()<0.5 ? 1 : -1);
-    if(sofia<1) sofia = me+1;
+    // La dirección de la diferencia dice cuál error realmente pasó:
+    // si Sofía contó de más, fue porque contó algo dos veces; si contó de menos, fue porque se saltó algo.
+    const higher = Math.random()<0.5;
+    sofiaDirection = higher ? 'high' : 'low';
+    let sofia = me + (higher ? 1 : -1);
+    if(sofia<1){ sofia = me+1; sofiaDirection='high'; }
     $('#sofiaVal').textContent=sofia;
     $('#sofiaBar').style.height=Math.max(10, sofia*6)+'px';
   }
   $$('#opts5 .opt').forEach(o=>{
     o.addEventListener('click', ()=>{
-      $$('#opts5 .opt').forEach(x=>x.classList.remove('selected'));
+      $$('#opts5 .opt').forEach(x=>x.disabled=true);
       o.classList.add('selected');
       const container=o.closest('.screen');
-      if(o.dataset.reason==='c'){
-        showFeedback(container,'success','✅ Exacto: cualquiera de esos errores pudo pasar. Por ahora no hay forma de saber cuál.');
+      const correctReason = sofiaDirection==='high' ? 'a' : 'b';
+      const isCorrect = o.dataset.reason===correctReason;
+      o.classList.add(isCorrect ? 'correct' : 'incorrect');
+      if(isCorrect){
+        const msg = sofiaDirection==='high'
+          ? '✅ Exacto: el resultado de Sofía fue más alto que el tuyo. Eso pasa cuando alguien cuenta un lápiz dos veces.'
+          : '✅ Exacto: el resultado de Sofía fue más bajo que el tuyo. Eso pasa cuando alguien se salta un lápiz.';
+        showFeedback(container,'success',msg);
+        confettiFromEl(o);
+      }else if(o.dataset.reason==='c'){
+        const msg = sofiaDirection==='high'
+          ? '❌ En este caso sí lo sabemos: el resultado de Sofía fue más alto, y eso apunta a que contó un lápiz dos veces, no a "cualquiera de las dos cosas".'
+          : '❌ En este caso sí lo sabemos: el resultado de Sofía fue más bajo, y eso apunta a que se saltó un lápiz, no a "cualquiera de las dos cosas".';
+        showFeedback(container,'error',msg);
       }else{
-        showFeedback(container,'neutral','Puede ser justo eso… o también la otra razón. Sin un método, no hay forma de saberlo con certeza.');
+        const msg = sofiaDirection==='high'
+          ? '❌ El resultado de Sofía fue más alto que el tuyo. Cuando el número sube, es porque algo se contó de más (dos veces).'
+          : '❌ El resultado de Sofía fue más bajo que el tuyo. Cuando el número baja, es porque algo se quedó sin contar (se saltó).';
+        showFeedback(container,'error',msg);
       }
       markComplete('5');
     });
