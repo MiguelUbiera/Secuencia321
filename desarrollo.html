@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aprendiendo a contar con método · El inventario del almacén escolar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@400;600;700;800&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#dccfc4;
+    --bg-alt:#d4c6ba;
+    --bg-card:rgba(255,255,255,.8);
+    --bg-card-soft:rgba(255,255,255,.55);
+    --ink:#1a1a1a;
+    --ink-soft:#3a322a;
+    --accent:#b85c3a;
+    --accent-dark:#7a3a22;
+    --accent-soft:rgba(184,92,58,.13);
+    --accent2:#2a5f7a;
+    --accent2-soft:rgba(42,95,122,.13);
+    --success:#4c8a5c;
+    --success-bg:rgba(76,138,92,.14);
+    --error:#c0483a;
+    --error-bg:rgba(192,72,58,.13);
+    --border-soft:rgba(26,24,20,.1);
+    --font-title:'Lora', serif;
+    --font-body:'Nunito', sans-serif;
+    --font-mono:'Source Code Pro', monospace;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    background:radial-gradient(ellipse at 15% 10%, #e7dcd0 0%, transparent 55%), radial-gradient(ellipse at 85% 90%, #cbb9a8 0%, transparent 55%), #cdbfae;
+    font-family:var(--font-body); color:var(--ink); overflow:hidden;
+  }
+  button{font-family:inherit;}
+  h1,h2,h3{font-family:var(--font-title); margin:0;}
+
+  .stage{
+    position:relative; width:min(1600px, 96vw); aspect-ratio:1600/650; max-height:94svh;
+    background:linear-gradient(160deg, var(--bg) 0%, var(--bg-alt) 100%);
+    border-radius:26px; box-shadow:0 40px 90px rgba(30,20,10,.35), 0 2px 0 rgba(255,255,255,.4) inset;
+    overflow:hidden; display:flex; flex-direction:column; isolation:isolate;
+  }
+
+  .hud{position:absolute; top:16px; right:20px; z-index:20; display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.55); backdrop-filter:blur(4px); border:1px solid var(--accent-soft); border-radius:999px; padding:6px 14px; font-family:var(--font-mono); font-size:.78rem; color:var(--ink-soft); box-shadow:0 4px 10px rgba(0,0,0,.06);}
+  .hud::before{content:"⏱"; font-size:.9rem;}
+
+  .screens{position:relative; flex:1 1 auto; min-height:0; z-index:1;}
+  .screen{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 64px; opacity:0; transform:translateX(40px); transition:opacity .6s var(--ease), transform .6s var(--ease); pointer-events:none;}
+  .screen.active{opacity:1; transform:translateX(0); pointer-events:auto; z-index:2;}
+  .screens.dir-back .screen:not(.active){transform:translateX(-40px);}
+
+  .portada{text-align:center; gap:16px;}
+  .portada .p-title,.portada .p-sub,.portada .p-btn{opacity:0; transform:translateY(14px);}
+  .portada.active .eyebrow{animation:enter .5s var(--ease) .1s forwards;}
+  .portada.active .p-title{animation:enter .5s var(--ease) .22s forwards;}
+  .portada.active .p-sub{animation:enter .5s var(--ease) .34s forwards;}
+  .portada.active .p-btn{animation:enter .5s var(--ease) .48s forwards;}
+  @keyframes enter{to{opacity:1; transform:translateY(0);}}
+
+  .eyebrow{display:inline-block; font-family:var(--font-mono); font-weight:600; font-size:.72rem; letter-spacing:.05em; text-transform:uppercase; color:var(--accent-dark); background:var(--accent-soft); border:1px solid rgba(184,92,58,.25); padding:5px 14px; border-radius:999px;}
+  .p-title{font-size:clamp(1.9rem,3.6vw,2.9rem); font-weight:700; color:var(--ink); max-width:900px; line-height:1.15;}
+  .p-sub{font-family:var(--font-body); font-weight:600; font-size:clamp(1.15rem,1.4vw,1.3rem); color:var(--ink-soft); max-width:960px; line-height:1.5;}
+
+  .btn{font-family:var(--font-body); font-weight:800; font-size:1rem; border:none; border-radius:44px; padding:14px 30px; cursor:pointer; transition:transform .32s var(--ease), box-shadow .32s var(--ease), background .32s var(--ease); display:inline-flex; align-items:center; gap:8px;}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 10px 24px rgba(184,92,58,.4);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 14px 30px rgba(184,92,58,.48); background:var(--accent-dark);}
+  .btn-primary:disabled{background:#c9b9ab; box-shadow:none; cursor:not-allowed; opacity:.6;}
+  .btn-ghost{background:transparent; color:var(--ink-soft); border:1.5px solid var(--border-soft);}
+  .btn-ghost:hover{border-color:var(--accent2); color:var(--accent2); transform:translateY(-2px);}
+  .btn-ghost:disabled{opacity:.35; cursor:not-allowed; transform:none;}
+  .btn-sm{padding:9px 18px; font-size:.85rem; border-radius:30px;}
+  .btn:focus-visible,.opt:focus-visible,input:focus-visible,.tray-drop:focus-visible,.piece2:focus-visible{outline:3px solid var(--accent2); outline-offset:2px;}
+
+  .step{gap:0;}
+  .step-inner{width:100%; max-width:1440px; display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .step-head{text-align:center; max-width:960px; display:flex; flex-direction:column; gap:8px; align-items:center;}
+  .step-title{font-size:clamp(1.3rem,2vw,1.8rem); font-weight:700; color:var(--ink);}
+  .step-instruction{font-family:var(--font-body); font-weight:700; font-size:clamp(1.07rem,1.2vw,1.18rem); color:var(--ink-soft); margin:0; max-width:860px; line-height:1.4;}
+  .step-content{width:100%; display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:4px;}
+  .feedback{min-height:32px; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; font-size:.92rem; padding:0 18px; text-align:center; border-radius:12px; opacity:0; transform:translateY(4px); transition:opacity .38s var(--ease), transform .38s var(--ease), padding .38s var(--ease); max-width:820px;}
+  .feedback.show{opacity:1; transform:translateY(0); padding:8px 18px;}
+  .feedback.success{background:var(--success-bg); color:#2f5c3a;}
+  .feedback.error{background:var(--error-bg); color:#7a2e24;}
+  .feedback.neutral{background:var(--accent2-soft); color:#1c4258;}
+
+  .opt{font-family:var(--font-body); font-weight:700; font-size:.93rem; background:var(--bg-card); border:2px solid var(--border-soft); color:var(--ink); border-radius:16px; padding:12px 20px; cursor:pointer; min-width:110px; transition:transform .32s var(--ease), box-shadow .32s var(--ease), border-color .32s var(--ease), background .32s var(--ease);}
+  .opt:hover{transform:translateY(-3px); box-shadow:0 10px 20px rgba(0,0,0,.1); border-color:var(--accent2);}
+  .opt.selected{border-color:var(--accent2); background:var(--accent2-soft);}
+  .opt.correct{border-color:var(--success); background:var(--success-bg); color:#2f5c3a;}
+  .opt.incorrect{border-color:var(--error); background:var(--error-bg); color:#7a2e24;}
+  .option-grid{display:flex; gap:14px; flex-wrap:wrap; justify-content:center;}
+
+  /* ---------- Cartel de formalización ---------- */
+  .cartel{width:100%; max-width:1040px; background:var(--bg-card); border:1.5px solid var(--border-soft); border-radius:22px; padding:16px 30px; display:flex; flex-direction:column; align-items:center; gap:10px; box-shadow:0 12px 28px rgba(0,0,0,.08);}
+  .cartel .pending-quote{font-family:var(--font-title); font-style:italic; color:var(--ink-soft); font-size:.95rem; text-align:center;}
+  .cartel .rule{font-family:var(--font-title); font-weight:700; font-size:clamp(1.05rem,1.7vw,1.35rem); text-align:center; color:var(--accent-dark); line-height:1.4; max-width:820px;}
+  .demo-row{display:flex; gap:22px; justify-content:center; align-items:flex-end; margin:4px 0;}
+  .demo-item{position:relative; display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .demo-item .icon{font-size:2rem;}
+  .demo-item .num-badge{width:26px; height:26px; border-radius:50%; background:var(--accent2); color:#fff; font-family:var(--font-mono); font-weight:700; font-size:.85rem; display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(.5); transition:opacity .25s var(--ease), transform .25s var(--ease);}
+  .demo-item.lit .num-badge{opacity:1; transform:scale(1);}
+  .demo-item.lit .icon{transform:scale(1.15); transition:transform .25s var(--ease);}
+  .demo-total{font-family:var(--font-mono); font-weight:700; font-size:1.4rem; color:var(--accent-dark); min-height:32px;}
+
+  /* ---------- Ejemplos contrastados ---------- */
+  .contrast-row{display:flex; gap:24px; justify-content:center; flex-wrap:wrap;}
+  .contrast-card{background:var(--bg-card); border:2px solid var(--border-soft); border-radius:18px; padding:14px 20px; display:flex; flex-direction:column; align-items:center; gap:8px; width:330px;}
+  .contrast-card h3{font-size:1rem; font-family:var(--font-body); font-weight:800;}
+  .contrast-card.pick-correct{border-color:var(--success);}
+  .contrast-card.pick-incorrect{border-color:var(--error);}
+
+  /* ---------- Campo de dispersión y bandeja ---------- */
+  .scatter-field{position:relative; width:100%; max-width:820px; height:130px; background:var(--bg-card-soft); border:1.5px dashed var(--border-soft); border-radius:18px; overflow:hidden;}
+  .scatter-field .piece2{position:absolute; width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:1.7rem; transform:translate(-50%,-50%) rotate(var(--r,0deg)); cursor:pointer; user-select:none; transition:opacity .3s var(--ease), transform .3s var(--ease); filter:drop-shadow(0 2px 3px rgba(0,0,0,.15));}
+  .scatter-field .piece2:hover{transform:translate(-50%,-50%) rotate(var(--r,0deg)) scale(1.18);}
+  .scatter-field .piece2.gone{opacity:0; transform:translate(-50%,-50%) scale(.3);}
+  .scatter-field .piece2.selected-pick{outline:3px solid var(--accent2); outline-offset:3px; border-radius:8px;}
+  .practice-row{display:flex; gap:20px; align-items:center; width:100%; max-width:900px; justify-content:center; flex-wrap:wrap;}
+  .tray{flex:0 0 220px; min-height:110px; background:var(--accent2-soft); border:2px dashed var(--accent2); border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .tray .tray-title{font-family:var(--font-mono); font-weight:700; font-size:.78rem; color:var(--accent2);}
+  .tray .tray-items{display:flex; flex-wrap:wrap; gap:4px; justify-content:center; min-height:36px;}
+  .tray .tray-items span{font-size:1.2rem; animation:pop .3s var(--ease);}
+  @keyframes pop{from{transform:scale(.3); opacity:0;} to{transform:scale(1); opacity:1;}}
+  .live-counter{font-family:var(--font-mono); font-weight:700; color:var(--accent2); font-size:1rem; background:var(--accent2-soft); padding:5px 14px; border-radius:999px;}
+
+  /* ---------- Imprimible ---------- */
+  .printable-card{display:flex; align-items:center; gap:26px; background:var(--bg-card); border:2px solid var(--border-soft); border-radius:20px; padding:22px 30px; max-width:820px; box-shadow:0 12px 26px rgba(0,0,0,.08);}
+  .printable-thumb{width:96px; height:124px; background:#fff; border:2px solid var(--accent); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; flex:0 0 auto; box-shadow:0 6px 14px rgba(0,0,0,.12);}
+  .printable-thumb span{font-size:1.3rem;}
+  .printable-info{display:flex; flex-direction:column; gap:8px; align-items:flex-start;}
+  .printable-info h3{font-size:1.05rem;}
+  .printable-info p{margin:0; font-size:.88rem; color:var(--ink-soft); max-width:420px; line-height:1.4;}
+  .printable-actions{display:flex; gap:10px; flex-wrap:wrap;}
+  .toggle-confirm{display:inline-flex; align-items:center; gap:8px; background:#fff; border:2px solid var(--border-soft); border-radius:30px; padding:9px 18px; cursor:pointer; font-weight:700; font-size:.85rem; color:var(--ink-soft); transition:border-color .3s var(--ease), color .3s var(--ease), background .3s var(--ease);}
+  .toggle-confirm .box{width:16px; height:16px; border-radius:5px; border:2px solid var(--ink-soft); display:inline-block;}
+  .toggle-confirm.on{border-color:var(--success); color:#2f5c3a; background:var(--success-bg);}
+  .toggle-confirm.on .box{background:var(--success); border-color:var(--success);}
+
+  /* ---------- Corrección de errores ---------- */
+  .round-tag{font-family:var(--font-mono); font-size:.72rem; color:var(--accent2); font-weight:700;}
+  .error-row{display:flex; gap:18px; justify-content:center; flex-wrap:wrap; max-width:820px;}
+  .error-item{position:relative; width:56px; height:56px; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; border-radius:12px; transition:transform .3s var(--ease), background .3s var(--ease);}
+  .error-item:hover{transform:translateY(-3px); background:rgba(0,0,0,.04);}
+  .error-item .mark{position:absolute; top:-4px; right:-4px; font-size:.9rem;}
+  .error-item .mark2{position:absolute; top:-8px; right:-10px; font-size:.62rem; font-family:var(--font-mono); font-weight:700; background:var(--error); color:#fff; border-radius:999px; padding:1px 5px; box-shadow:0 2px 4px rgba(0,0,0,.25);}
+  .error-item.found{outline:3px solid var(--success); border-radius:10px;}
+  .error-item.shakeit{animation:shakeh .4s;}
+  @keyframes shakeh{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+
+  /* ---------- Recuento final formalización ---------- */
+  .countup-display{font-family:var(--font-mono); font-weight:700; font-size:3rem; color:var(--accent-dark);}
+  .rule-final{font-family:var(--font-title); font-style:italic; font-size:clamp(1.05rem,1.6vw,1.25rem); color:var(--ink); text-align:center; max-width:760px;}
+
+  .confetti-piece{position:absolute; top:-10px; border-radius:2px; z-index:50; pointer-events:none;}
+
+  .navbar{position:relative; z-index:5; flex:0 0 auto; display:flex; align-items:center; gap:18px; padding:14px 40px; border-top:1px solid rgba(26,24,20,.08); background:rgba(255,255,255,.35);}
+  .navbar.hidden{visibility:hidden;}
+  .progress-wrap{flex:1; display:flex; flex-direction:column; gap:5px; align-items:center;}
+  .progress-track{width:100%; max-width:640px; height:8px; border-radius:999px; background:rgba(26,24,20,.12); overflow:hidden;}
+  .progress-fill{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width .4s var(--ease);}
+  .progress-text{font-family:var(--font-mono); font-size:.72rem; color:var(--ink-soft);}
+
+  .final{gap:14px; text-align:center;}
+  .final .badge{font-size:2.4rem;}
+  .final h2{font-size:clamp(1.5rem,2.4vw,2.1rem);}
+  .final p{max-width:760px; color:var(--ink-soft); font-size:1.02rem; line-height:1.5;}
+  .pending-question{max-width:820px; background:var(--bg-card); border:2px solid var(--accent); border-radius:18px; padding:16px 28px; font-family:var(--font-title); font-style:italic; font-size:clamp(1rem,1.5vw,1.2rem); color:var(--ink); box-shadow:0 10px 26px rgba(184,92,58,.18);}
+  .final-actions{display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:4px;}
+
+  .credit{font-family:var(--font-mono); font-size:.72rem; color:#5a4f43; opacity:.75; letter-spacing:.02em;}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important;}
+  }
+
+  @media (max-width:760px), (max-height:480px){
+    body{overflow-y:auto; padding:16px 0;}
+    .stage{width:100vw; aspect-ratio:auto; min-height:100svh; max-height:none; border-radius:0;}
+    .screen{position:relative; display:none; padding:0 20px; min-height:calc(100svh - 90px); opacity:1 !important; transform:none !important;}
+    .screen.active{display:flex;}
+    .contrast-row,.practice-row{gap:12px;}
+    .printable-card{flex-direction:column; text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="hud"><span id="timer">00:00</span></div>
+
+  <main class="screens" id="screens">
+
+    <!-- PORTADA -->
+    <section class="screen portada active" data-screen="portada">
+      <span class="eyebrow">🔧 Misión Almacén · Construcción del método</span>
+      <h1 class="p-title">Aprendiendo a contar con método</h1>
+      <p class="p-sub">En la exploración descubrimos el problema: contar sin método lleva a dudas y errores. Ahora vamos a resolverlo, practicarlo en pantalla y en papel, y dejarlo bien aprendido.</p>
+      <button class="btn btn-primary p-btn" id="btnComenzar">Comenzar</button>
+    </section>
+
+    <!-- PASO 1: Respuesta a la pregunta pendiente -->
+    <section class="screen step" data-screen="1">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 1 de 7 · La respuesta</span>
+          <h2 class="step-title">Así podemos estar seguros</h2>
+        </div>
+        <div class="step-content">
+          <div class="cartel">
+            <div class="pending-quote">"¿Cómo podemos estar seguros de que hemos contado todos los objetos y no hemos contado ninguno dos veces?"</div>
+            <div class="rule">A cada objeto le asignamos un número, y solo uno, en orden: sin saltar y sin repetir.</div>
+            <div class="demo-row" id="demoRow1"></div>
+            <div class="demo-total" id="demoTotal1">&nbsp;</div>
+            <button class="btn btn-ghost btn-sm" id="playDemo1">▶ Ver cómo funciona</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 2: Ejemplos contrastados -->
+    <section class="screen step" data-screen="2">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 2 de 7 · Correcto vs. incorrecto</span>
+          <h2 class="step-title">¿Cuál conteo está bien hecho?</h2>
+          <p class="step-instruction">Reproduce los dos conteos de estos 5 lápices y elige el correcto.</p>
+        </div>
+        <div class="step-content">
+          <div class="contrast-row">
+            <div class="contrast-card" id="cardA">
+              <h3>Conteo A</h3>
+              <div class="demo-row" id="demoRowA"></div>
+              <div class="demo-total" id="totalA">&nbsp;</div>
+              <button class="btn btn-ghost btn-sm" data-play="A">▶ Reproducir</button>
+            </div>
+            <div class="contrast-card" id="cardB">
+              <h3>Conteo B</h3>
+              <div class="demo-row" id="demoRowB"></div>
+              <div class="demo-total" id="totalB">&nbsp;</div>
+              <button class="btn btn-ghost btn-sm" data-play="B">▶ Reproducir</button>
+            </div>
+          </div>
+          <div class="option-grid">
+            <button class="opt" data-pick="A">El Conteo A está bien</button>
+            <button class="opt" data-pick="B">El Conteo B está bien</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 3: Conteo guiado -->
+    <section class="screen step" data-screen="3">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 3 de 7 · Practica con método</span>
+          <h2 class="step-title">Cuenta las piezas de geometría</h2>
+          <p class="step-instruction">Toca cada pieza, una por una. Cada una pasará a "Ya contados".</p>
+        </div>
+        <div class="step-content">
+          <span class="live-counter">Contados: <span id="geoCounter">0</span> / 9</span>
+          <div class="practice-row">
+            <div class="scatter-field" id="fieldGeo" style="flex:1;"></div>
+            <div class="tray"><span class="tray-title">YA CONTADOS</span><div class="tray-items" id="trayGeo"></div></div>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 4: Arrastrar y soltar -->
+    <section class="screen step" data-screen="4">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 4 de 7 · Arrastra y suelta</span>
+          <h2 class="step-title">Ahora con los libros</h2>
+          <p class="step-instruction">Arrastra cada libro hasta la caja (o tócalo y luego toca la caja).</p>
+        </div>
+        <div class="step-content">
+          <span class="live-counter">Ya contados: <span id="bookCounter2">0</span> / 8</span>
+          <div class="practice-row">
+            <div class="scatter-field" id="fieldBooks2" style="flex:1;"></div>
+            <div class="tray" id="trayDrop" tabindex="0" role="button" aria-label="Caja ya contados, suelta aquí"><span class="tray-title">📦 YA CONTADOS</span><div class="tray-items" id="trayBooks2"></div></div>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 5: Imprimible -->
+    <section class="screen step" data-screen="5">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 5 de 7 · Ahora en papel</span>
+          <h2 class="step-title">Traslada el método al papel</h2>
+          <p class="step-instruction">Descarga tu hoja, cuenta marcando cada elemento y escribe los totales.</p>
+        </div>
+        <div class="step-content">
+          <div class="printable-card">
+            <div class="printable-thumb"><span>📋</span><span style="font-size:.6rem;font-family:'Source Code Pro',monospace;color:#7a7168;">PDF</span></div>
+            <div class="printable-info">
+              <h3>Mi registro de conteo</h3>
+              <p>Tres colecciones para contar con lápiz en mano: lápices, libros y reglas. Marca cada elemento y anota el total de cada una.</p>
+              <div class="printable-actions">
+                <a class="btn btn-primary btn-sm" id="downloadPdfBtn" download="mi-registro-de-conteo.pdf" href="#">⬇ Descargar PDF</a>
+                <button class="toggle-confirm" id="confirmPaperBtn"><span class="box"></span> Ya conté y anoté mis totales</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 6: Corrección de errores -->
+    <section class="screen step" data-screen="6">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 6 de 7 · Encuentra y corrige</span>
+          <h2 class="step-title" id="errorTitle">Alguien contó mal…</h2>
+          <p class="step-instruction" id="errorInstruction">Mateo contó estos lápices y dijo que hay 5. Toca el que se le olvidó marcar.</p>
+        </div>
+        <div class="step-content">
+          <span class="round-tag" id="roundTag">RONDA 1 DE 2 · OMISIÓN</span>
+          <div class="error-row" id="errorRow"></div>
+          <button class="btn btn-ghost btn-sm" id="recontarBtn" style="display:none;">Recontar todos →</button>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- PASO 7: Formalización final -->
+    <section class="screen step" data-screen="7">
+      <div class="step-inner">
+        <div class="step-head">
+          <span class="eyebrow">Paso 7 de 7 · La idea clave</span>
+          <h2 class="step-title">El último número es el total</h2>
+        </div>
+        <div class="step-content">
+          <div class="demo-row" id="demoRowFinal"></div>
+          <div class="countup-display" id="countupFinal">0</div>
+          <div class="rule-final">"Cuando cuentas bien, el último número que dices es el total de la colección."</div>
+          <p class="step-instruction" style="margin-top:2px;">¿Cuál es el total de esta colección?</p>
+          <div class="option-grid" id="optsFinal7">
+            <button class="opt" data-n="5">5</button>
+            <button class="opt" data-n="6">6</button>
+            <button class="opt" data-n="7">7</button>
+          </div>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- FINAL -->
+    <section class="screen final" data-screen="final">
+      <span class="badge">✅</span>
+      <span class="eyebrow">Método aprendido</span>
+      <h2>¡Ya sabes contar con método!</h2>
+      <p>Practicaste la correspondencia uno a uno en pantalla, en papel y corrigiendo errores. Ya tienes lo necesario para el inventario final.</p>
+      <div class="pending-question">"A cada objeto, un número y solo uno, en orden. El último número dicho es el total."</div>
+      <div class="final-actions">
+        <button class="btn btn-ghost" id="btnRevisar">Revisar</button>
+        <button class="btn btn-ghost" id="btnIndex">Volver a la secuencia</button>
+        <button class="btn btn-primary" id="btnCierre">Ir a entregar el informe →</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="navbar" id="navbar">
+    <button class="btn btn-ghost" id="btnAnterior">← Anterior</button>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-text" id="progressText">Paso 1 de 7</span>
+    </div>
+    <button class="btn btn-ghost" id="btnReiniciar">Reiniciar</button>
+    <button class="btn btn-primary" id="btnSiguiente">Siguiente →</button>
+  </footer>
+</div>
+
+<div class="credit">Secuencia321® · Miguel Ubiera</div>
+
+<script>
+const PDF_BASE64 = "JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyA5IDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9QYXJlbnQgOCAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNiAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDggMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9BdXRob3IgKGFub255bW91cykgL0NyZWF0aW9uRGF0ZSAoRDoyMDI2MDgwMzA2MDgyNiswMCcwMCcpIC9DcmVhdG9yIChhbm9ueW1vdXMpIC9LZXl3b3JkcyAoKSAvTW9kRGF0ZSAoRDoyMDI2MDgwMzA2MDgyNiswMCcwMCcpIC9Qcm9kdWNlciAoUmVwb3J0TGFiIFBERiBMaWJyYXJ5IC0gXChvcGVuc291cmNlXCkpIAogIC9TdWJqZWN0ICh1bnNwZWNpZmllZCkgL1RpdGxlICh1bnRpdGxlZCkgL1RyYXBwZWQgL0ZhbHNlCj4+CmVuZG9iago4IDAgb2JqCjw8Ci9Db3VudCAxIC9LaWRzIFsgNSAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjkgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggNDk2MAo+PgpzdHJlYW0KR2IiLytoMy9oZCZWJl1RNkI7RywtVzk5IlFXLm9pLlRKX0gwTWFZPWxiMThSQzJWWWloMnVhV3FLLEJkUCVKTVBhMkozXkddQF5Kcj9TZFM7WkhDOlVLTz9LclxOWyltVFFTY1Q7YiYnRE5rMXBtIUU9IWpPQ0xoZTdbKWM7W3Q2QTwpW3NDIiRYTjRYTmlJWDdrPkw/O1pWZG5TXl9xZ15BaGsmNzUtbzkyOytXSVZHNy09SCkmK1FsTlNcNHMoVEhUOTBpcDBsQzYlL1spcC5fOFM7WzA7Tm5CWCs0WDooIXNPXSFLLz1sVCR1czElRSdacWpzNE9nVl9qOlUtalE1QF9wM11iPkhhUHBVRHRnLm9XYjs/NGNUV2knMHU2OiE6cXAqTjEtKms0UlQ+UWkqZ2g/PiI5OChQVE46XW9qJW9SNG1Ja3EjSD1qUlVZSUQuLGVzaUdnaHM9LDBwOGppUU0hRTEkYy9IMkJwOEl1PUVmQjomb29tOy4oNDRfM1lQISZYUSEjJ1Q3ViY/Vlk1M09QaHFkW1xdPk4zT0duKiRmbEclWSptRyx0YGRqT0UmazYhJ0czaDEqO0NcOFFnZC5TNTpDM3I+KG9YJl49L2I4PCFFNCpDVSJMN1FESitNckldSUlDQGg9NztgaGFNSj81QVkiL1ZKJ21mbSwrW2cjZC5rQGVgbHFMSDJrdS9nN1lSXFgqO3BYTmJFSjxNWlhsXE5NMiRITzlZNTVHUFJtIkc8XW42bk9NXFdpcG87Km5sKVxDQl1iP0I2TGleJEc/R0QqQSNhKlk0TC43Z0ZoUjwvUS1kMjYhQEElSicxdF5JOi1QRG4pRytcUS4zVCdGMmhhUk1kPkwlOjhlVVspLyFXKCxtO2BxMDBmUD48PFNEP05DJ0FZZkU0KWVea3U2LWREMTosYnFVI0MpQl81aVlFISJKYmMxKTRgQ2lJVC4xcEZVSm1WazVURG9SNUJaYWFBKitjVFhTZGxaUVdnMjQlX2NZOzcyY3E1Xm4+SSRjLFRELXMpamVRNFJjS18+K0lqYW8qTWtnNlVIRjk7PmZERFsyOzdZLyReS3ArWldibGpXWCZSTy5ySFBlUVlJQSdRZyJ0TlAtYCIhQ3JjJFo8KnR1XUBMRFA8XVgpOl9CZ0tFbzgmIklyaEdNQjFpQmM5IyZOWXVpYVhlJVc3L1VgMVVpP05RY2huU3NRbC1tQzFbcFpzS2pxbUx1TGsyc29uMjtVM2pGV0Y9JFdjbDxGNmgmTl9lc3RxJFlDbGhFZm1RXzBnViEoUU8udGJoWFA5Zk5vJGYlcj4hVT1WOG0zZ1h0byZzQGtXOTliNU1jWz8jP0oiRmlHYVREKTM7JVVCYlVXVGpfKTFZVik3RGUhYFRrbGdKVEErLUdJNiFZMHQkMSVGT2Nqb0U8SDlZbTFdUS5IPUA5WkVuQGZqM2E3R0I+Umo0IWZXNS0hYkpDMVpiYHNqOl9PW09YRz1oVHNvTEErZlJHVFo8UyUqR15jJm9OSE0wKSliVlc7cCgya0BdaUlSYDAkUypFcEVbRkxDYi4/QlQ7Mj0oSypBQk9mclA8J1FfVlEzIlVtO3ViXyk+I05oM2lsa1IiMDE+W2Z0XGdwMGpIZixVWCU0J2k6O2AuQ1NlMUouZy5MJEJfOjxMbjpQZzFtRyMsS3NHPkhjaWBKaCE4Q2NXTHBlbnJmIUVJREZTKSxYJzc8S1JZRztPakVeYHI8UVBmPUNAQGlGZnAjQihIYy9lJT9BclMhYmFZISk8UihvNEZBIS4uYEluaFtRc21KZzVdZkg1ITtKIT4jQmNecEAkWSw1TT0oU1UkQGw9RCNua3A/IltaTmcqIloxPkZKLFFpTnJXdFBLcEpVPHFMWz1nNjpNYmhWJy1gWik1OTVSYElMPU5gTj5OKiN1I3ViJkZyMC9gdD9gYmBbcjBKRS5zQVgyYlg8LSw3bDVZQk9fZG03OF9MZFg5WU82WjMqZUEhRlliR1RuUWplO0M1cFVNWz0rZU4yJExDUyUvTztbRFwoYigoaidFanEvMExTJ11sckFSPmshWypfckE9cjNzU142QyJDUWlzZlc2cUYobWlPb2ZuNkhJMVoxJ0pZJms7amNtKjxFUC1sbU0yPkFoaDAlQGFsRSwzXTk3ZWZFIS0rTWxiXUsnYWJoSjhqXlBZVmhBaVAnTSoqblk5UWBcInBjKS4rRjV1P1s6LjctKHMocSpOKFtGKmchSVJBNHQ2c045NF42JUgmW0JCL2otZjluOFVQbkxPMVNmVVFrNlpdR1o4PCE/O3U1QF4rZG1VcEVLIzg3YzY4UiMocFxiaXFHJVs8ZVtuYE5CdHQmWSxERFRnTio7aSpcLkEsRT40Llc3Ric0VTNSRFVTJHFbQU9jLCZrWVlTcUJsWXQ/UkhaRyJvJV5lUVloSSdYOj9dTC1fNjleUW88ZypucGZTSGtfTXAzMlZGPmBiIT1DWHJJPkktXkojcyQhNlBTZlVcJFMjdVA+KnNaPCE+RWRvO29NQzFdYiYrWmEhR2xXP3VAXHJZNmg1TyYrKEAoanBdRFAqayJvbi4qR3MsOFcqMVQkS1RrMyMwRTtkPkwzYywqbU0nQm82Ry1bKWoyZWsmTzZeNmo/XiZxQTQpWilaMEA5JmxQXm5hbFtWZy8kKkFrcVBtW0pZPi9FT2NrSSZzbjY9UmAmQFJsZkAlMWsiNDVXIUNHXFM2dTkoc2RqbmRJLEsoQCo4bnUrXGx1OWdjPT9AZGFKP1pYaFc2UTZIQC1vZEAjWkNaYVJBTERdSk5hUWs6SjhNJVE1IiYxKm0sSDlgciM0Mj5xWCElKEpYPjFoQFVBTkciQlIjXUpNT1w9N3FNUUdsXWAzRmhILlEqOTtrZms7ZVpeMVBEOmJkWURiOiI8NyEtLVdFU3QrZGEpTSRGaUE0LiNTWkZsOmg2SDJOWTBwN20/Zy5vV2osQ2lnYi8/VCN1WG1fRjpGPjwnQDBHdGZQQUYraS5WWzlLbEM2XSxEUnAmLnU4NFUqOiVURjgzPiUxIWhOWFpPXEchSW0mNj5QJjlJNSk/aUsuXEJlMFphbk1xOGspQlU9aVhwXXJIJnQ+ZVkjVDA4K111K2psN0dAJSVXK0hLMVA7SkplSkU3RlUmZ2hMVksvPVYiJUxBLVxLYCIyT1FuNjQ6UFNWK2V0NSgpLCwjNFAmS14sbUNBUTlDLklFJlM+IVgqV2FbJCQqP3ArcDtPcGZZaFheS2FtZ3Nnaz1HUUxHQj07UkdeSSMhNUFYXVUiY21dUWozUiJzSWVWa25mO2woS2tMNFtwamRlP21tXlg5LGVrLmxXY21XbzZPX0pkPio+RzVANW8rMXM5ISRmXl5zMnMiMzotREFPbjREXyYzOE9lO3VUZk09QjIwVUYnIS5tJkRcRks3MVI6QUwvdEkxSTRCTjllMWJzQmYlXD9wcWQlY1MjIWVQI0c7UFc7MTozNlwpNEljLXJWcShPLzhGbXVoJihDX0dAUEc5aGF0P3RGKk1bZ14hRCRbRkYhOSpcZWVsMiEqQzptblFsVj43LmtcUSErZ2NDT0pIRko0V1hIYmBMLjooMjBkYkdrJzpKXkI4SktQQjFENjU+WlVATE0hRXAsXVplQyw5cmRacldqc1ZFLUpVZDxiMTo6NSZCZ0JqNUIwKGEiZ2VLX2plLlIlTiQtTlpiJk5ecDBFSz1ZLzAoSzteW006cTdjQWtaRShJRTJmLXI4JEgnQDUlRTxASU84aEpsaCJkImJvPWZxaUVXZV8vOzNrOUYtUjNwTmxCcylNbz0iRGw/NTouQEVdJSd1OCh0VEIqIktJOWY6aHEqUWYiO0FCOWpAOzBHUUInbzVfSUhCVFEoXklYISglaDFhdVFKZEheOSpgXWlsV28+K1YkbltOdWdYYz5Gck8mZmxwQzI9bkU1Z2Q0XV0pZW0zZilgPWshRlFsMjZBbEhLOSVpTEA+Jjg+WV1gIyp1aGpfJGhOVzteK1VLNnNsTHVLVmIySmglW0s/WmgkOVxDQmVpJ0c4XHA+Y3EnJUFPKVoxRnBpOiI9N0RrbWJTYjlPSD5wVjJPYWUyUTQxUWYhLGdnamMzc14vTTVmYCVGOT5FWFhvaUtdIjJIODNLYmJXbVEqU1lXW0ZqVmxZL1RUPVYjW1ouLnU+OEkoKGokRGpxLzBMUyddbHJBUj91YE1USjFKLjA7Sz9sR2NVcFRiZkpHa2BnVFI+dSdAMD01PyZCWC9nMCJgOHA0XC8kWlNXRWlUOTdlUTNcRk0sbTowKG42cjNtLTYwKjImV1BDYkldQj9aL0k6JkFDViZSKi8xQiwsbm0mOlFzNzZNQSomSmhOb2xTIT80T2VzY0NoR0wtYD5UImAiJm0lZFViJVQ9WkNvTlNGRWEkUEU0T29uMlVKLjldVzdzN106MERvSmcrXFhzN2FkJTFxampKQ206KD4tNFolLlE1bC0maTY6XUZKOS4uWy9gNGVRNGM5cmBtdC1wW2duNVY5a1xDdFo3ZVxKZHMuckI8Z1B0cjJHS2Q1SydPZVEmMEFzP1NrLWQlRGFBY1Q8ZWxJZDhPcWcwZWAiPmsiUnRKWGhVOU1CY2wmQzxTXC5SNTgyW3NnWWdFbVtSbi9gRzlXMiU3MlY0NCdScl0oLykxN1NLKGdSSTc4QD51PFlnIVctLixLWC5RN1tHbUVVdE8+RW8iYSZhOzhlRGAhUEw0YElmV105Ll5YS0xCaC49cWQ6dWNrdDNVSjlzWmhNWDo7c00qLiFWYj07Qz5WOFwsUkI+WExYTm1mWyReKVpWQlA1N3EnbVcpcSwiZkA9PyJvPTROIURlKzpoQCtRI1EhXEQzS0M8W3RHUlEkcUpDITQ1OD9YPy5ZTnQtWTwwLVtwST86NS1DMC1cQlYhc0QuWm5LTlBpcCopZzNscFYlPl9OLyJrOD5eVkRrdWtdVSdeQiFtTU5PNiViMTFIPTAtXHFDXW5mUikudTN0V14sdUQ3PSUvSkZXaXE6SG4mXF08cjEyYF49X1FeIVpPazgrT2ZKNSdzKVF1MTpNNkJDbVQ0SEZSUGsvIyNATUtkPXU+Vi0nJGYjaCtaMU1vKT49ZjReOFd0QjlII2s/JXQqYjVZSEMhZmBTRDVKMDVKODZKP2AydEI+WyFoJS4mQUssOkBQUVdqP0VdO0s/IzhJTyhuKEIvPTBVJlwxbipJYy0ub2QqJGgwYyhqXCUiRixqTzMtQktcP0FjVCsuUC5UOV5taChMSCE+WT5FaT4lTkRpLlw1aHI1InVsYjcnJlwqLF5BRCRmTXVYP09iNCgyKmheb3VYRTxrIlciXklnKm9yVipnZmsjR2IsSypAVWlYOCYzV15VJ2lQW3BcLjlTPnJvUSNMQWUuRm9yZUE7WHNGUjZYczM0IVhhKCVPby5JQyxEOktHXD8rKUQxNC0xZDxmQTFUVjhXIWhHXGkxaEYrdTEkX3FuZktEXThkZ0RhXU83Iy1LWik9Y1ZXOFg7I3VtJz9TUDkzPF5xKGZrcC51Lj9iRDJmNjRMKU9NOFU7ZE1iSVlXTDFKZ0I1b2VFWztFIydJKCktQTBUVzdxOmNMSUs4VUA2TFBbcWMiZ0hFJytnS3RdayJcRzdwNTohKjNkPzwiU0FrNGQrPW5HRyM6Ji1rTj1KSmVMZkw5Z3BtUCwsRjQlUzEvLSNGSW1dXnVqTy4oMzklPlI3XmE6QWVURmdMNkUjP1w8YmJaYnApL0dlaVgjLkduWEFOW2Q4cUI3OXNycTczKkc+STNCSmAsZlMzdFE6dFlBSEdFSlAiNWZNT2FScVZCUVpbW3M6PDchME11Wy1XazZsYlNZaGhyNGE/QjNOPC0hLDNhWWEmZm1fYXQwX05lRlZQSDFiJ2pLYWUhcixEYU1mK0wwPj1iSWdHUlJdViJEYUo2Z1FANiNXayIjOi9gQW1fNFY3bjAoK1w/WmVzMz1HNDgsJl84Wj8wQyk8U1lXPGghZDxjRFlUYCtEInNOKUQibzhqZmotW1dwYHNJaVxcJE1gRUBqajBlcHBtaz0yXWgmVDxqRmJUMHRRJyomaTZYJ0Q6XiRfYCwjRkVJI0sqP1NARGshKCIiP1ZpWkI9UC9VUz5kZ3VEUSRaLk4nLjZfXldnQDlHam1KJmRwRydrQF40MihhI20hVzQtcF1lTmlhKlAjTmxdajVsXGxxZSpuZSJDTG5eM11CLnVAbEdqNkheOkMmZ1lDWmU0Zk1xVmxyIV5fP1k+MChAZlAiITdCdSE2N1krUkQlOC5oYmdgUzQkLlY3a0hPSChrP005TDNPQG0xa0o/XFpGN0ZCb09WMmQmb28+SzNoSFpIXzVvIUtkbDBiMjwkVyROcCRtWjlmVFkmVjxoN2hWYlk+NEErSiVlKWRwR19ZKVIrbnJuWGdaN2AiYEVkSGVFbi4mYiMlR0M1I3NvKG1IOiwqKFxRcG1IRjpgSUVzXEImbikjLkdHPz4zN0NcXi06bC0xPUM5PD1uO1JuXzh1PEtxXWZuWGNBUnI6OT1pZVBQLzszOit1T1lQIm0+cnI9RyUxNlZ+PmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDEwCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA2MSAwMDAwMCBuIAowMDAwMDAwMTEyIDAwMDAwIG4gCjAwMDAwMDAyMTkgMDAwMDAgbiAKMDAwMDAwMDMzMSAwMDAwMCBuIAowMDAwMDAwNDQ2IDAwMDAwIG4gCjAwMDAwMDA2MzkgMDAwMDAgbiAKMDAwMDAwMDcwNyAwMDAwMCBuIAowMDAwMDAwOTY4IDAwMDAwIG4gCjAwMDAwMDEwMjcgMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8YjE0NjNkOTlhYjk1MWFmNjhjNTA0MzdkMjU4MzY1MTU+PGIxNDYzZDk5YWI5NTFhZjY4YzUwNDM3ZDI1ODM2NTE1Pl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKG9wZW5zb3VyY2UpCgovSW5mbyA3IDAgUgovUm9vdCA2IDAgUgovU2l6ZSAxMAo+PgpzdGFydHhyZWYKNjA3OAolJUVPRgo=";
+
+(function(){
+  "use strict";
+  const $=(s,c)=> (c||document).querySelector(s);
+  const $$=(s,c)=> [...(c||document).querySelectorAll(s)];
+
+  /* Timer */
+  let seconds=0;
+  const timerEl=$('#timer');
+  setInterval(()=>{
+    seconds++;
+    timerEl.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+  },1000);
+
+  /* Navegación */
+  const order=['portada','1','2','3','4','5','6','7','final'];
+  const screensEl=$('#screens');
+  const screenEls={};
+  order.forEach(k=>{screenEls[k]=$('.screen[data-screen="'+k+'"]');});
+  const totalSteps=7;
+  let currentIdx=0;
+  const completed={};
+  const navbar=$('#navbar');
+  const btnAnterior=$('#btnAnterior');
+  const btnSiguiente=$('#btnSiguiente');
+  const progressFill=$('#progressFill');
+  const progressText=$('#progressText');
+  function keyAt(i){return order[i];}
+  function updateNav(){
+    const key=keyAt(currentIdx);
+    const isPortada=key==='portada', isFinal=key==='final';
+    navbar.classList.toggle('hidden', isPortada||isFinal);
+    if(isPortada||isFinal) return;
+    const n=parseInt(key,10);
+    progressFill.style.width=((n-1)/(totalSteps-1)*100)+'%';
+    progressText.textContent='Paso '+n+' de '+totalSteps;
+    btnAnterior.disabled=(n===1);
+    btnSiguiente.textContent = n===totalSteps? 'Finalizar ▶':'Siguiente →';
+    btnSiguiente.disabled=!completed[key];
+  }
+  function goTo(idx,dir){
+    idx=Math.max(0,Math.min(order.length-1,idx));
+    if(idx===currentIdx) return;
+    screensEl.classList.toggle('dir-back',dir<0);
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        screenEls[keyAt(currentIdx)].classList.remove('active');
+        currentIdx=idx;
+        screenEls[keyAt(currentIdx)].classList.add('active');
+        updateNav();
+      });
+    });
+  }
+  function markComplete(key){completed[key]=true; updateNav();}
+  btnSiguiente.addEventListener('click', ()=>{ if(!btnSiguiente.disabled) goTo(currentIdx+1,1); });
+  btnAnterior.addEventListener('click', ()=> goTo(currentIdx-1,-1));
+  $('#btnComenzar').addEventListener('click', ()=> goTo(1,1));
+  $('#btnRevisar').addEventListener('click', ()=> goTo(1,-1));
+  $('#btnIndex').addEventListener('click', ()=> location.href='index.html');
+  $('#btnCierre').addEventListener('click', ()=> location.href='cierre.html');
+  $('#btnReiniciar').addEventListener('click', ()=> location.reload());
+
+  /* Confeti */
+  const stage=$('#stage');
+  const confettiColors=['#b85c3a','#2a5f7a','#4c8a5c','#e4a24a','#f0ece6'];
+  function confettiBurst(x,y){
+    for(let i=0;i<42;i++){
+      const p=document.createElement('div');
+      p.className='confetti-piece';
+      const size=6+Math.random()*8;
+      p.style.width=size+'px'; p.style.height=(size*.6)+'px';
+      p.style.left=x+'px'; p.style.top=y+'px';
+      p.style.background=confettiColors[i%confettiColors.length];
+      const dx=(Math.random()-0.5)*320, dy=140+Math.random()*190, rot=(Math.random()-0.5)*620;
+      p.animate([{transform:'translate(0,0) rotate(0deg)',opacity:1},{transform:`translate(${dx}px, ${dy}px) rotate(${rot}deg)`,opacity:0}],{duration:1450+Math.random()*200, easing:'cubic-bezier(.2,.7,.4,1)'});
+      stage.appendChild(p);
+      setTimeout(()=>p.remove(),1700);
+    }
+  }
+  function confettiFromEl(el){
+    const r=el.getBoundingClientRect(), sr=stage.getBoundingClientRect();
+    confettiBurst(r.left-sr.left+r.width/2, r.top-sr.top+r.height/2);
+  }
+  function showFeedback(container,type,html){
+    const f=container.querySelector('.feedback');
+    f.className='feedback '+type+' show';
+    f.innerHTML=html;
+  }
+
+  /* ---------- Sonido de conteo: bip corto generado con Web Audio, sin dependencias externas ---------- */
+  let audioCtx=null;
+  function beep(freq=880, dur=0.09){
+    try{
+      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.state==='suspended') audioCtx.resume();
+      const osc=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      osc.type='sine';
+      osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.16, audioCtx.currentTime+0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime+dur+0.02);
+    }catch(e){ /* audio no disponible: continuamos sin sonido */ }
+  }
+
+  /* ---------- Paso 1: demo cartel ---------- */
+  function buildDemoRow(container, icons){
+    container.innerHTML='';
+    return icons.map(ic=>{
+      const d=document.createElement('div');
+      d.className='demo-item';
+      d.innerHTML='<span class="num-badge"></span><span class="icon">'+ic+'</span>';
+      container.appendChild(d);
+      return d;
+    });
+  }
+  const demoIcons1=['✏️','📚','📐','✏️','📚'];
+  const demo1Items=buildDemoRow($('#demoRow1'), demoIcons1);
+  function playSequential(items, container, totalEl, finalNumber, skipIdx){
+    items.forEach(it=>{it.classList.remove('lit'); it.querySelector('.num-badge').textContent='';});
+    totalEl.textContent='';
+    let n=0;
+    items.forEach((it,idx)=>{
+      if(skipIdx!==undefined && idx===skipIdx) return;
+      n++;
+      const captured=n;
+      setTimeout(()=>{
+        it.classList.add('lit');
+        it.querySelector('.num-badge').textContent=captured;
+        if(captured===finalNumber) totalEl.textContent='Total: '+finalNumber;
+      }, n*480);
+    });
+  }
+  $('#playDemo1').addEventListener('click', ()=>{
+    playSequential(demo1Items, $('#demoRow1'), $('#demoTotal1'), 5);
+    markComplete('1');
+  });
+
+  /* ---------- Paso 2: contraste A/B ---------- */
+  const demoA=buildDemoRow($('#demoRowA'), ['✏️','✏️','✏️','✏️','✏️']);
+  const demoB=buildDemoRow($('#demoRowB'), ['✏️','✏️','✏️','✏️','✏️']);
+  $$('[data-play]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(btn.dataset.play==='A') playSequential(demoA, $('#demoRowA'), $('#totalA'), 5);
+      else playSequential(demoB, $('#demoRowB'), $('#totalB'), 4, 2);
+    });
+  });
+  $$('#cardA, #cardB').forEach(()=>{});
+  $$('.option-grid .opt[data-pick]').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      const container=o.closest('.screen');
+      $$('.opt[data-pick]').forEach(x=>x.classList.remove('selected','correct','incorrect'));
+      if(o.dataset.pick==='A'){
+        o.classList.add('selected','correct');
+        showFeedback(container,'success','✅ Correcto. En el Conteo A cada lápiz recibió un número, sin saltos ni repeticiones: el total es 5.');
+        markComplete('2');
+        confettiFromEl(o);
+      }else{
+        o.classList.add('selected','incorrect');
+        showFeedback(container,'error','❌ En el Conteo B, un lápiz se quedó sin número. Por eso el total salió mal (4 en lugar de 5). Vuelve a mirar el Conteo A.');
+      }
+    });
+  });
+
+  /* ---------- Paso 3: conteo guiado (geometría) ---------- */
+  const shapeEmojis=['🔺','🔷','⬜','🔵','🔶'];
+  function placeItems(container, list){
+    const n=list.length;
+    const cols=Math.max(1,Math.ceil(Math.sqrt(n*3.2)));
+    const rows=Math.max(1,Math.ceil(n/cols));
+    const cellW=100/cols, cellH=100/rows;
+    const cells=[];
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) cells.push([r,c]);
+    cells.sort(()=>Math.random()-0.5);
+    const used=cells.slice(0,n);
+    return list.map((item,i)=>{
+      const [r,c]=used[i];
+      const jitterX=(Math.random()*0.4-0.2)*cellW, jitterY=(Math.random()*0.4-0.2)*cellH;
+      const cx=Math.min(96,Math.max(4, c*cellW+cellW/2+jitterX));
+      const cy=Math.min(92,Math.max(8, r*cellH+cellH/2+jitterY));
+      const el=document.createElement('span');
+      el.className='piece2';
+      el.textContent=item;
+      el.style.left=cx+'%'; el.style.top=cy+'%';
+      el.style.setProperty('--r',(Math.random()*40-20)+'deg');
+      container.appendChild(el);
+      return el;
+    });
+  }
+  let geoCount=0;
+  const GEO_TOTAL=9;
+  function buildGeo(){
+    const field=$('#fieldGeo');
+    field.innerHTML=''; $('#trayGeo').innerHTML=''; geoCount=0; $('#geoCounter').textContent='0';
+    const list=Array.from({length:GEO_TOTAL},(_,i)=>shapeEmojis[i%shapeEmojis.length]);
+    const els=placeItems(field, list);
+    els.forEach(el=>{
+      el.tabIndex=0;
+      el.setAttribute('role','button');
+      el.setAttribute('aria-label','Pieza de geometría');
+      el.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); } });
+      el.addEventListener('click', ()=>{
+        if(el.classList.contains('gone')) return;
+        beep();
+        el.classList.add('gone');
+        setTimeout(()=>el.remove(),260);
+        const clone=document.createElement('span');
+        clone.textContent=el.textContent;
+        $('#trayGeo').appendChild(clone);
+        geoCount++;
+        $('#geoCounter').textContent=geoCount;
+        if(geoCount===GEO_TOTAL){
+          const container=field.closest('.screen');
+          showFeedback(container,'success','✅ 9 piezas, cada una contada una sola vez. ¡Eso es correspondencia uno a uno!');
+          markComplete('3');
+          confettiFromEl($('#geoCounter'));
+        }
+      });
+    });
+  }
+  buildGeo();
+
+  /* ---------- Paso 4: arrastrar y soltar (libros) ---------- */
+  const bookEmojis2=['📕','📗','📘','📙','📓','📔'];
+  let bookCount2=0;
+  const BOOK_TOTAL2=8;
+  let selectedBook=null;
+  function buildBooks2(){
+    const field=$('#fieldBooks2');
+    field.innerHTML=''; $('#trayBooks2').innerHTML=''; bookCount2=0; $('#bookCounter2').textContent='0'; selectedBook=null;
+    const list=Array.from({length:BOOK_TOTAL2},(_,i)=>bookEmojis2[i%bookEmojis2.length]);
+    const els=placeItems(field, list);
+    els.forEach(el=>{
+      el.setAttribute('draggable','true');
+      el.tabIndex=0;
+      el.setAttribute('role','button');
+      el.setAttribute('aria-label','Libro. Selecciónalo y luego activa la caja Ya contados.');
+      el.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain','x'); selectedBook=el; });
+      el.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); } });
+      el.addEventListener('click', ()=>{
+        if(el.classList.contains('gone')) return;
+        $$('.piece2.selected-pick', field).forEach(x=>x.classList.remove('selected-pick'));
+        selectedBook=el;
+        el.classList.add('selected-pick');
+      });
+    });
+  }
+  function placeBookInTray(el){
+    if(!el || el.classList.contains('gone')) return;
+    beep();
+    el.classList.add('gone');
+    setTimeout(()=>el.remove(),260);
+    const clone=document.createElement('span');
+    clone.textContent=el.textContent;
+    $('#trayBooks2').appendChild(clone);
+    bookCount2++;
+    $('#bookCounter2').textContent=bookCount2;
+    selectedBook=null;
+    if(bookCount2===BOOK_TOTAL2){
+      const container=$('#fieldBooks2').closest('.screen');
+      showFeedback(container,'success','✅ 8 libros, todos movidos a la caja sin repetir ninguno.');
+      markComplete('4');
+      confettiFromEl($('#bookCounter2'));
+    }
+  }
+  buildBooks2();
+  const trayDrop=$('#trayDrop');
+  trayDrop.addEventListener('dragover', e=> e.preventDefault());
+  trayDrop.addEventListener('drop', e=>{ e.preventDefault(); placeBookInTray(selectedBook); });
+  trayDrop.addEventListener('click', ()=> placeBookInTray(selectedBook));
+  trayDrop.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); placeBookInTray(selectedBook);} });
+
+  /* ---------- Paso 5: imprimible ---------- */
+  const downloadBtn=$('#downloadPdfBtn');
+  downloadBtn.href='data:application/pdf;base64,'+PDF_BASE64;
+  let pdfDownloaded=false, paperConfirmed=false;
+  function checkStep5(){
+    if(pdfDownloaded && paperConfirmed){
+      const container=downloadBtn.closest('.screen');
+      showFeedback(container,'success','✅ Perfecto. Ya tienes tu registro en papel, tal como lo harías en el almacén real.');
+      markComplete('5');
+    }
+  }
+  downloadBtn.addEventListener('click', ()=>{ pdfDownloaded=true; checkStep5(); });
+  $('#confirmPaperBtn').addEventListener('click', function(){
+    paperConfirmed=!paperConfirmed;
+    this.classList.toggle('on', paperConfirmed);
+    if(paperConfirmed) checkStep5();
+  });
+
+  /* ---------- Paso 6: corrección de errores ---------- */
+  let errorRound=1;
+  const errorTitle=$('#errorTitle'), errorInstruction=$('#errorInstruction'), roundTag=$('#roundTag'), errorRow=$('#errorRow'), recontarBtn=$('#recontarBtn');
+  function buildRound1(){
+    errorRound=1;
+    roundTag.textContent='RONDA 1 DE 2 · OMISIÓN';
+    errorTitle.textContent='Alguien contó mal…';
+    errorInstruction.textContent='Mateo contó estos lápices y dijo que hay 5. Toca el que se le olvidó marcar.';
+    errorRow.innerHTML='';
+    recontarBtn.style.display='none';
+    const omittedIdx=3;
+    for(let i=0;i<6;i++){
+      const el=document.createElement('div');
+      el.className='error-item';
+      el.innerHTML='✏️'+(i!==omittedIdx? '<span class="mark">✔️</span>':'');
+      el.addEventListener('click', ()=>{
+        const container=errorRow.closest('.screen');
+        if(i===omittedIdx){
+          el.classList.add('found');
+          showFeedback(container,'success','✅ Ahí está: ese lápiz quedó sin marcar. Con él, el total real es 6, no 5.');
+          recontarBtn.style.display='inline-flex';
+        }else{
+          el.classList.add('shakeit'); setTimeout(()=>el.classList.remove('shakeit'),400);
+          showFeedback(container,'error','Ese ya tiene su marca ✔️. Busca el que no tiene ninguna.');
+        }
+      });
+      errorRow.appendChild(el);
+    }
+  }
+  function buildRound2(){
+    errorRound=2;
+    const fb=errorRow.closest('.screen').querySelector('.feedback');
+    fb.className='feedback'; fb.innerHTML='';
+    roundTag.textContent='RONDA 2 DE 2 · REPETICIÓN';
+    errorTitle.textContent='Otro conteo, otro error…';
+    errorInstruction.textContent='Ana contó estas reglas y dijo que hay 8, pero solo hay 7. Toca la que se contó dos veces.';
+    errorRow.innerHTML='';
+    recontarBtn.style.display='none';
+    const doubleIdx=4;
+    for(let i=0;i<7;i++){
+      const el=document.createElement('div');
+      el.className='error-item';
+      el.innerHTML='📏'+(i===doubleIdx? '<span class="mark2">2×</span>':'<span class="mark">✔️</span>');
+      el.addEventListener('click', ()=>{
+        const container=errorRow.closest('.screen');
+        if(i===doubleIdx){
+          el.classList.add('found');
+          showFeedback(container,'success','✅ Exacto: esa regla se contó dos veces. Por eso el total salió más alto (8) que el real (7).');
+          recontarBtn.style.display='inline-flex';
+        }else{
+          el.classList.add('shakeit'); setTimeout(()=>el.classList.remove('shakeit'),400);
+          showFeedback(container,'error','Esa solo tiene una marca. Busca la que tiene dos.');
+        }
+      });
+      errorRow.appendChild(el);
+    }
+  }
+  recontarBtn.addEventListener('click', ()=>{
+    const container=errorRow.closest('.screen');
+    if(errorRound===1){
+      showFeedback(container,'neutral','Recontando… 1, 2, 3, 4, 5, 6. Total: 6 lápices.');
+      setTimeout(buildRound2, 1200);
+    }else{
+      showFeedback(container,'neutral','Recontando… 1, 2, 3, 4, 5, 6, 7. Total: 7 reglas.');
+      markComplete('6');
+      setTimeout(()=>confettiFromEl(recontarBtn),200);
+    }
+  });
+  buildRound1();
+
+  /* ---------- Paso 7: formalización final ---------- */
+  const demoFinalIcons=['📦','📚','✏️','📐','📏','✅'];
+  const demoFinalItems=buildDemoRow($('#demoRowFinal'), demoFinalIcons);
+  function playFinalCountup(){
+    demoFinalItems.forEach(it=>{it.classList.remove('lit'); it.querySelector('.num-badge').textContent='';});
+    $('#countupFinal').textContent='0';
+    demoFinalItems.forEach((it,idx)=>{
+      setTimeout(()=>{
+        it.classList.add('lit');
+        it.querySelector('.num-badge').textContent=idx+1;
+        $('#countupFinal').textContent=idx+1;
+      },(idx+1)*420);
+    });
+  }
+  $$('#optsFinal7 .opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      const container=o.closest('.screen');
+      $$('#optsFinal7 .opt').forEach(x=>{x.disabled=true;});
+      const ok=o.dataset.n==='6';
+      o.classList.add(ok?'correct':'incorrect');
+      if(ok){
+        showFeedback(container,'success','✅ Correcto. El último número que dijimos, el 6, es el total de la colección.');
+        markComplete('7');
+        confettiFromEl(o);
+      }else{
+        showFeedback(container,'error','Observa de nuevo la animación: el último número que aparece es el total.');
+        setTimeout(()=>{ $$('#optsFinal7 .opt').forEach(x=>{x.disabled=false; x.classList.remove('incorrect');}); },1200);
+      }
+    });
+  });
+  // Reproduce automáticamente al entrar al paso 7
+  let played7=false;
+  const obs7=new MutationObserver(()=>{
+    if(screenEls['7'].classList.contains('active') && !played7){ played7=true; playFinalCountup(); }
+  });
+  obs7.observe(screenEls['7'], {attributes:true, attributeFilter:['class']});
+
+  updateNav();
+})();
+</script>
+</body>
+</html>
