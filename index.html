@@ -10,11 +10,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@400;600;700;800&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg1:#1c1712; --bg2:#211a22; --bg3:#161c24;
-    --ink:#f3ede4; --ink-soft:#c9bfae;
+    --bg1:#10141d; --bg2:#131a26; --bg3:#0d121a;
+    --ink:#ffffff; --ink-soft:#dad7d2;
     --accent:#e0784f; --accent-dark:#c96038;
     --accent2:#5fa3c4; --accent2-soft:rgba(95,163,196,.16);
-    --card-bg:rgba(255,255,255,.09); --card-border:rgba(255,255,255,.24);
+    --card-bg:rgba(255,255,255,.24); --card-border:rgba(255,255,255,.52);
     --success:#6fbf86;
     --font-title:'Lora', serif; --font-body:'Nunito', sans-serif; --font-mono:'Source Code Pro', monospace;
     --ease:cubic-bezier(.16,1,.3,1);
@@ -24,9 +24,9 @@
   body{
     min-height:100svh; display:flex; flex-direction:column;
     background:
-      radial-gradient(ellipse 1000px 560px at 12% -8%, rgba(224,120,79,.20) 0%, transparent 60%),
-      radial-gradient(ellipse 1000px 680px at 92% 108%, rgba(95,163,196,.20) 0%, transparent 60%),
-      linear-gradient(150deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+      radial-gradient(ellipse 1000px 560px at 12% -8%, rgba(224,120,79,.07) 0%, transparent 58%),
+      radial-gradient(ellipse 1100px 720px at 92% 108%, rgba(95,163,196,.16) 0%, transparent 60%),
+      linear-gradient(165deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
     font-family:var(--font-body); color:var(--ink); overflow:hidden;
     position:relative; isolation:isolate;
   }
@@ -36,26 +36,14 @@
 
   /* ---------- Fondo dinámico ---------- */
   .bg-anim{position:fixed; inset:0; overflow:hidden; z-index:0; pointer-events:none;}
-  .bg-anim span{position:absolute; opacity:.18; font-size:2.5rem; animation:float 22s ease-in-out infinite; filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));}
-  .bg-anim span.num{font-family:var(--font-mono); font-weight:700; color:var(--accent2); opacity:.24;}
-  .bg-anim span.dot{display:inline-block; opacity:.4; width:5px; height:5px; border-radius:50%; background:var(--ink-soft); filter:none; animation:twinkle 4s ease-in-out infinite;}
+  .bg-anim span{position:absolute; opacity:.11; font-size:2.3rem; animation:float 22s ease-in-out infinite; filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));}
+  .bg-anim span.num{font-family:var(--font-mono); font-weight:700; color:var(--accent2); opacity:.16;}
   @keyframes float{
     0%,100%{transform:translateY(0) rotate(0deg) scale(1);}
     25%{transform:translateY(-28px) rotate(7deg) scale(1.06);}
     50%{transform:translateY(8px) rotate(-4deg) scale(.97);}
     75%{transform:translateY(26px) rotate(-8deg) scale(1.03);}
   }
-  @keyframes twinkle{
-    0%,100%{opacity:.1; transform:scale(.7);}
-    50%{opacity:.75; transform:scale(1.35);}
-  }
-  .bg-glow{
-    position:fixed; z-index:0; pointer-events:none; width:640px; height:640px; border-radius:50%;
-    top:-220px; right:-160px; background:radial-gradient(circle, rgba(224,120,79,.28) 0%, transparent 70%);
-    animation:glowpulse 9s ease-in-out infinite;
-  }
-  .bg-glow.b{top:auto; right:auto; bottom:-240px; left:-180px; background:radial-gradient(circle, rgba(95,163,196,.24) 0%, transparent 70%); animation-delay:-4s;}
-  @keyframes glowpulse{0%,100%{opacity:.55; transform:scale(1);} 50%{opacity:1; transform:scale(1.12);}}
 
   .topbar{position:relative; z-index:3; padding:26px 44px 0;}
   .brandtag{font-family:var(--font-mono); font-size:.78rem; letter-spacing:.05em; color:var(--ink-soft); opacity:.85; display:inline-flex; align-items:center; gap:8px;}
@@ -64,21 +52,21 @@
   .content{position:relative; z-index:2; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; padding:10px 44px 22px;}
   .hero{text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px; opacity:0; transform:translateY(14px); animation:enter .6s var(--ease) .05s forwards; max-width:900px;}
   .hero .icon-row{font-size:2.3rem; margin-bottom:2px;}
-  .hero h1{font-size:clamp(1.9rem,3.4vw,2.7rem); font-weight:700; color:var(--ink); line-height:1.12; text-shadow:0 2px 18px rgba(0,0,0,.35);}
-  .hero p{font-size:clamp(.96rem,1.15vw,1.08rem); color:var(--ink-soft); max-width:680px; margin:0; line-height:1.45;}
+  .hero h1{font-size:clamp(1.97rem,3.5vw,2.8rem); font-weight:700; color:var(--ink); line-height:1.12; text-shadow:0 2px 18px rgba(0,0,0,.45);}
+  .hero p{font-weight:600; font-size:clamp(1.04rem,1.24vw,1.16rem); color:var(--ink-soft); max-width:700px; margin:0; line-height:1.48;}
   @keyframes enter{to{opacity:1; transform:translateY(0);}}
 
   .missions{display:flex; gap:26px; justify-content:center; flex-wrap:wrap; width:100%; max-width:1500px; opacity:0; transform:translateY(16px); animation:enter .6s var(--ease) .2s forwards;}
   .mission-card{
     flex:1 1 340px; max-width:460px; min-width:300px;
-    background:linear-gradient(165deg, var(--card-bg), rgba(255,255,255,.03));
-    border:1.5px solid var(--card-border); border-top:3px solid rgba(224,120,79,.55); border-radius:22px; padding:24px 26px 22px;
+    background:linear-gradient(165deg, var(--card-bg), rgba(255,255,255,.1));
+    border:2px solid var(--card-border); border-top:3px solid rgba(224,120,79,.6); border-radius:22px; padding:24px 26px 22px;
     display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; cursor:pointer;
     backdrop-filter:blur(8px);
-    box-shadow:0 18px 40px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.08) inset;
+    box-shadow:0 18px 40px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.1) inset;
     transition:transform .32s var(--ease), box-shadow .32s var(--ease), border-color .32s var(--ease), background .32s var(--ease);
   }
-  .mission-card:hover{transform:translateY(-7px); box-shadow:0 26px 52px rgba(0,0,0,.42); border-color:var(--accent2); background:linear-gradient(165deg, rgba(255,255,255,.15), rgba(255,255,255,.05));}
+  .mission-card:hover{transform:translateY(-7px); box-shadow:0 26px 52px rgba(0,0,0,.42); border-color:var(--accent2); background:linear-gradient(165deg, rgba(255,255,255,.32), rgba(255,255,255,.13));}
   .mission-card:focus-visible{outline:3px solid var(--accent2); outline-offset:3px;}
   .mission-card .icons{font-size:2rem; display:flex; gap:8px;}
   .mission-card .m-tag{font-family:var(--font-mono); font-weight:700; font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent2); opacity:.95;}
@@ -135,15 +123,12 @@
     .missions{gap:14px;}
     .mission-card{flex:1 1 100%; max-width:380px; min-width:0;}
     .mission-card h2{white-space:normal;}
-    .bg-glow{width:380px; height:380px;}
   }
 </style>
 </head>
 <body>
 
 <div class="bg-anim" id="bgAnim" aria-hidden="true"></div>
-<div class="bg-glow" aria-hidden="true"></div>
-<div class="bg-glow b" aria-hidden="true"></div>
 
 <header class="topbar">
   <div class="brandtag"><span class="dot"></span> SECUENCIA321®</div>
@@ -183,9 +168,9 @@
   <div class="clip-area">
     <button class="clip-trigger" id="clipBtn" aria-expanded="false" aria-controls="clipMenu" aria-label="Materiales de apoyo">📎</button>
     <nav class="clip-menu" id="clipMenu">
-      <a href="Gu%C3%ADa%20r%C3%A1pida.pdf" target="_blank" rel="noopener">📄 Guía rápida.pdf</a>
-      <a href="Secuencia%20did%C3%A1ctica.pdf" target="_blank" rel="noopener">📄 Secuencia didáctica.pdf</a>
-      <a href="Material%20de%20apoyo.pdf" target="_blank" rel="noopener">📄 Material de apoyo.pdf</a>
+      <a href="Gu%C3%ADa.pdf" target="_blank" rel="noopener">📓 Guía</a>
+      <a href="Planificaci%C3%B3n.pdf" target="_blank" rel="noopener">🗒️ Planificación</a>
+      <a href="Imprimible.pdf" target="_blank" rel="noopener">🖨️ Imprimible</a>
     </nav>
   </div>
 </main>
@@ -195,30 +180,18 @@
 <script>
 (function(){
   "use strict";
-  const bgItems=['📦','📚','✏️','📐','🔢','✅','🔺','📦','📚','✏️','🏫','📦'];
+  const bgItems=['📦','📚','✏️','📐','🔺','📦','📚'];
   const bgAnim=document.getElementById('bgAnim');
   bgItems.forEach((it,i)=>{
     const s=document.createElement('span');
     s.textContent=it;
-    if(/[0-9]/.test(it)) s.classList.add('num');
-    s.style.left=(3+(i*8.6)%94)+'%';
-    s.style.top=(4+(i*15.2)%88)+'%';
-    s.style.fontSize=(1.7+(i%4)*0.55)+'rem';
+    s.style.left=(4+(i*13)%92)+'%';
+    s.style.top=(6+(i*17.5)%86)+'%';
+    s.style.fontSize=(1.6+(i%4)*0.5)+'rem';
     s.style.animationDuration=(16+(i%7)*1.8)+'s';
     s.style.animationDelay=(-(i*1.6))+'s';
     bgAnim.appendChild(s);
   });
-  // Partículas de brillo sutil para reforzar la sensación de fondo vivo.
-  const DOTS=24;
-  for(let i=0;i<DOTS;i++){
-    const d=document.createElement('span');
-    d.className='dot';
-    d.style.left=(Math.random()*98)+'%';
-    d.style.top=(Math.random()*96)+'%';
-    d.style.animationDuration=(2.6+Math.random()*3.2)+'s';
-    d.style.animationDelay=(-(Math.random()*4))+'s';
-    bgAnim.appendChild(d);
-  }
 
   const clipBtn=document.getElementById('clipBtn');
   const clipMenu=document.getElementById('clipMenu');
