@@ -1,334 +1,238 @@
 
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Encuentra el sol · Secuencia didáctica interactiva</title>
-  <meta name="description" content="Órbita elíptica interactiva para clase de Geometría Analítica">
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="apple-touch-icon" href="favicon.png">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>El inventario del almacén escolar · Secuencia321</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@400;600;700;800&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#1c1712; --bg2:#211a22; --bg3:#161c24;
+    --ink:#f3ede4; --ink-soft:#c9bfae;
+    --accent:#e0784f; --accent-dark:#c96038;
+    --accent2:#5fa3c4; --accent2-soft:rgba(95,163,196,.16);
+    --card-bg:rgba(255,255,255,.09); --card-border:rgba(255,255,255,.24);
+    --success:#6fbf86;
+    --font-title:'Lora', serif; --font-body:'Nunito', sans-serif; --font-mono:'Source Code Pro', monospace;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0; padding:0; height:100%;}
+  body{
+    min-height:100svh; display:flex; flex-direction:column;
+    background:
+      radial-gradient(ellipse 1000px 560px at 12% -8%, rgba(224,120,79,.20) 0%, transparent 60%),
+      radial-gradient(ellipse 1000px 680px at 92% 108%, rgba(95,163,196,.20) 0%, transparent 60%),
+      linear-gradient(150deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+    font-family:var(--font-body); color:var(--ink); overflow:hidden;
+    position:relative; isolation:isolate;
+  }
+  button{font-family:inherit;}
+  h1,h2,h3{font-family:var(--font-title); margin:0;}
+  a{color:inherit; text-decoration:none;}
 
-    body {
-      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      background: linear-gradient(145deg, #0b1a2e 0%, #0f212f 100%);
-      min-height: 100vh;
-      color: #f0f6ff;
-      position: relative;
-      overflow-x: hidden;
-      font-size: 12.6px;
-    }
+  /* ---------- Fondo dinámico ---------- */
+  .bg-anim{position:fixed; inset:0; overflow:hidden; z-index:0; pointer-events:none;}
+  .bg-anim span{position:absolute; opacity:.18; font-size:2.5rem; animation:float 22s ease-in-out infinite; filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));}
+  .bg-anim span.num{font-family:var(--font-mono); font-weight:700; color:var(--accent2); opacity:.24;}
+  .bg-anim span.dot{display:inline-block; opacity:.4; width:5px; height:5px; border-radius:50%; background:var(--ink-soft); filter:none; animation:twinkle 4s ease-in-out infinite;}
+  @keyframes float{
+    0%,100%{transform:translateY(0) rotate(0deg) scale(1);}
+    25%{transform:translateY(-28px) rotate(7deg) scale(1.06);}
+    50%{transform:translateY(8px) rotate(-4deg) scale(.97);}
+    75%{transform:translateY(26px) rotate(-8deg) scale(1.03);}
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:.1; transform:scale(.7);}
+    50%{opacity:.75; transform:scale(1.35);}
+  }
+  .bg-glow{
+    position:fixed; z-index:0; pointer-events:none; width:640px; height:640px; border-radius:50%;
+    top:-220px; right:-160px; background:radial-gradient(circle, rgba(224,120,79,.28) 0%, transparent 70%);
+    animation:glowpulse 9s ease-in-out infinite;
+  }
+  .bg-glow.b{top:auto; right:auto; bottom:-240px; left:-180px; background:radial-gradient(circle, rgba(95,163,196,.24) 0%, transparent 70%); animation-delay:-4s;}
+  @keyframes glowpulse{0%,100%{opacity:.55; transform:scale(1);} 50%{opacity:1; transform:scale(1.12);}}
 
-    .floating-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
+  .topbar{position:relative; z-index:3; padding:26px 44px 0;}
+  .brandtag{font-family:var(--font-mono); font-size:.78rem; letter-spacing:.05em; color:var(--ink-soft); opacity:.85; display:inline-flex; align-items:center; gap:8px;}
+  .brandtag .dot{width:9px; height:9px; border-radius:3px; background:var(--accent);}
 
-    .floating-a2 {
-      position: absolute;
-      top: 20%;
-      left: 8%;
-      font-size: 2.2rem;
-      font-weight: bold;
-      font-family: 'Courier New', monospace;
-      color: #ffb347;
-      opacity: 0.35;
-      animation: flotar 14s infinite alternate ease-in-out;
-      z-index: 1;
-    }
-    .floating-b2 {
-      position: absolute;
-      bottom: 25%;
-      right: 6%;
-      font-size: 2.2rem;
-      font-weight: bold;
-      font-family: 'Courier New', monospace;
-      color: #7dd3fc;
-      opacity: 0.35;
-      animation: flotar 9s infinite alternate-reverse;
-      z-index: 1;
-    }
+  .content{position:relative; z-index:2; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; padding:10px 44px 22px;}
+  .hero{text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px; opacity:0; transform:translateY(14px); animation:enter .6s var(--ease) .05s forwards; max-width:900px;}
+  .hero .icon-row{font-size:2.3rem; margin-bottom:2px;}
+  .hero h1{font-size:clamp(1.9rem,3.4vw,2.7rem); font-weight:700; color:var(--ink); line-height:1.12; text-shadow:0 2px 18px rgba(0,0,0,.35);}
+  .hero p{font-size:clamp(.96rem,1.15vw,1.08rem); color:var(--ink-soft); max-width:680px; margin:0; line-height:1.45;}
+  @keyframes enter{to{opacity:1; transform:translateY(0);}}
 
-    @keyframes flotar {
-      0% { transform: translateY(0px) rotate(0deg); }
-      100% { transform: translateY(15px) rotate(3deg); }
-    }
+  .missions{display:flex; gap:26px; justify-content:center; flex-wrap:wrap; width:100%; max-width:1500px; opacity:0; transform:translateY(16px); animation:enter .6s var(--ease) .2s forwards;}
+  .mission-card{
+    flex:1 1 340px; max-width:460px; min-width:300px;
+    background:linear-gradient(165deg, var(--card-bg), rgba(255,255,255,.03));
+    border:1.5px solid var(--card-border); border-top:3px solid rgba(224,120,79,.55); border-radius:22px; padding:24px 26px 22px;
+    display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; cursor:pointer;
+    backdrop-filter:blur(8px);
+    box-shadow:0 18px 40px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.08) inset;
+    transition:transform .32s var(--ease), box-shadow .32s var(--ease), border-color .32s var(--ease), background .32s var(--ease);
+  }
+  .mission-card:hover{transform:translateY(-7px); box-shadow:0 26px 52px rgba(0,0,0,.42); border-color:var(--accent2); background:linear-gradient(165deg, rgba(255,255,255,.15), rgba(255,255,255,.05));}
+  .mission-card:focus-visible{outline:3px solid var(--accent2); outline-offset:3px;}
+  .mission-card .icons{font-size:2rem; display:flex; gap:8px;}
+  .mission-card .m-tag{font-family:var(--font-mono); font-weight:700; font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent2); opacity:.95;}
+  .mission-card h2{font-size:clamp(.96rem,1.3vw,1.18rem); color:var(--ink); line-height:1.25; white-space:nowrap;}
+  .mission-card p{font-size:.85rem; color:var(--ink-soft); margin:0; line-height:1.42; min-height:52px;}
+  .mission-pill{
+    margin-top:2px; font-family:var(--font-mono); font-weight:700; font-size:.7rem; letter-spacing:.03em; white-space:nowrap;
+    padding:8px 18px; border-radius:999px; color:#2a1a10; background:linear-gradient(120deg, var(--accent), #f0a06e);
+    box-shadow:0 6px 14px rgba(224,120,79,.35);
+  }
+  .mission-card.card-2{border-top-color:rgba(95,163,196,.55);}
+  .mission-card.card-2 .mission-pill{background:linear-gradient(120deg, var(--accent2), #8ecbe6); box-shadow:0 6px 14px rgba(95,163,196,.35);}
+  .mission-card.card-3{border-top-color:rgba(111,191,134,.55);}
+  .mission-card.card-3 .mission-pill{background:linear-gradient(120deg, var(--success), #a3e0af); box-shadow:0 6px 14px rgba(111,191,134,.35);}
 
-    .solar-system {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
+  /* ---------- Clip de materiales (icono desnudo, sin chrome de botón) ---------- */
+  .clip-area{position:relative; display:flex; flex-direction:column; align-items:center; gap:10px; opacity:0; transform:translateY(10px); animation:enter .6s var(--ease) .36s forwards;}
+  .clip-trigger{
+    background:none; border:none; padding:6px; margin:0; cursor:pointer; font-size:1.55rem; line-height:1;
+    color:var(--ink-soft); transform:rotate(-15deg); transition:transform .3s var(--ease), color .3s var(--ease);
+    filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));
+  }
+  .clip-trigger:hover{transform:rotate(6deg) scale(1.15); color:var(--ink);}
+  .clip-trigger.open{transform:rotate(14deg) scale(1.1); color:var(--accent2);}
+  .clip-trigger:focus-visible{outline:3px solid var(--accent2); outline-offset:4px; border-radius:8px;}
 
-    .sol {
-      position: absolute;
-      left: 75%;
-      top: 22%;
-      transform: translate(-50%, -50%);
-      font-size: 3.8rem;
-      filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.7));
-      z-index: 2;
-      animation: brillar 3s infinite alternate;
-    }
+  .clip-menu{
+    display:flex; gap:10px; overflow:hidden; max-width:0; opacity:0;
+    transition:max-width .5s var(--ease), opacity .4s var(--ease), gap .5s var(--ease);
+  }
+  .clip-menu.open{max-width:800px; opacity:1;}
+  .clip-menu a{
+    white-space:nowrap; display:flex; align-items:center; gap:7px; background:rgba(255,255,255,.06);
+    border:1.5px solid var(--card-border); color:var(--ink-soft); font-size:.8rem; font-weight:700;
+    padding:9px 16px; border-radius:14px; transition:transform .25s var(--ease), border-color .25s, color .25s, background .25s;
+    transform:translateX(-8px); opacity:0;
+  }
+  .clip-menu.open a{transform:translateX(0); opacity:1;}
+  .clip-menu.open a:nth-child(1){transition-delay:.08s;}
+  .clip-menu.open a:nth-child(2){transition-delay:.16s;}
+  .clip-menu.open a:nth-child(3){transition-delay:.24s;}
+  .clip-menu a:hover{border-color:var(--accent2); color:#fff; background:rgba(255,255,255,.12); transform:translateY(-2px);}
 
-    @keyframes brillar {
-      from { filter: drop-shadow(0 0 6px rgba(255,215,0,0.5)); transform: translate(-50%, -50%) scale(1); }
-      to { filter: drop-shadow(0 0 20px rgba(255,215,0,0.9)); transform: translate(-50%, -50%) scale(1.04); }
-    }
+  .credit{position:relative; z-index:2; text-align:center; font-family:var(--font-mono); font-size:.72rem; color:var(--ink-soft); opacity:.65; letter-spacing:.02em; padding-bottom:16px;}
 
-    .tierra {
-      position: absolute;
-      font-size: 2.6rem;
-      filter: drop-shadow(0 0 8px rgba(64,224,208,0.8));
-      offset-path: ellipse(45% 38% at 75% 22%);
-      animation: orbitar 6s infinite linear;
-      z-index: 2;
-    }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important;}
+  }
 
-    @keyframes orbitar {
-      0% { offset-distance: 0%; }
-      100% { offset-distance: 100%; }
-    }
-
-    .wrapper {
-      position: relative;
-      z-index: 3;
-      max-width: 1170px;
-      min-height: 100vh;
-      margin: 0 auto;
-      padding: 1rem 1.8rem 1.8rem;
-      background: transparent;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .header-main {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      border-bottom: 2px solid rgba(255,215,140,0.5);
-      padding-bottom: 0.6rem;
-      margin-bottom: 1.5rem;
-      backdrop-filter: blur(2px);
-    }
-
-    .titulo-clase h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #FFE6B0, #FFB347);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      letter-spacing: -0.3px;
-    }
-    .titulo-clase p {
-      font-size: 0.75rem;
-      color: #b9d9ff;
-      margin-top: 0.15rem;
-    }
-
-    .docente-info {
-      text-align: right;
-      font-weight: 500;
-      background: rgba(0,0,0,0.3);
-      padding: 0.25rem 0.7rem;
-      border-radius: 30px;
-      backdrop-filter: blur(4px);
-    }
-    .docente-info .nombre {
-      font-size: 0.9rem;
-      color: #FFDEAD;
-    }
-    .docente-info .centro {
-      font-size: 0.65rem;
-      color: #cbd5e6;
-    }
-
-    .section-claim {
-      text-align: center;
-      margin: 3.5rem 0 1.2rem;
-    }
-    .section-claim h2 {
-      font-size: 1.35rem;
-      font-weight: 600;
-      display: inline-block;
-      background: rgba(0,0,0,0.4);
-      padding: 0.25rem 1rem;
-      border-radius: 40px;
-      backdrop-filter: blur(8px);
-    }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 1.5rem;
-      margin: 1rem 0 0.8rem;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      padding: 1.2rem 0.8rem;
-      text-align: center;
-      transition: all 0.25s ease;
-      border: 1px solid rgba(255,255,200,0.25);
-      box-shadow: 0 6px 14px rgba(0,0,0,0.2);
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .card:hover {
-      transform: translateY(-6px);
-      background: rgba(255, 255, 245, 0.2);
-      border-color: #ffcc77;
-      box-shadow: 0 12px 20px rgba(0,0,0,0.3);
-    }
-
-    .card-icon {
-      font-size: 2.6rem;
-    }
-
-    .card h3 {
-      font-size: 1.15rem;
-      font-weight: 600;
-      margin: 0.1rem 0;
-    }
-
-    .card p {
-      font-size: 0.75rem;
-      color: #e2e8ff;
-      max-width: 90%;
-    }
-
-    .badge {
-      background: #ffb347;
-      color: #1e2a3a;
-      font-weight: bold;
-      font-size: 0.65rem;
-      padding: 0.2rem 0.7rem;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 0.3rem;
-      display: inline-block;
-    }
-
-    footer {
-      margin-top: auto;
-      text-align: center;
-      font-size: 0.7rem;
-      color: #b9d0e7;
-      border-top: 1px solid rgba(255,215,140,0.3);
-      padding-top: 1rem;
-    }
-    footer strong {
-      color: #FFDE9E;
-    }
-
-    @media (max-width: 680px) {
-      .wrapper { padding: 0.8rem 1rem 1.2rem; }
-      .header-main { flex-direction: column; align-items: center; text-align: center; }
-      .docente-info { text-align: center; }
-      .card h3 { font-size: 1rem; }
-      .sol { left: 70%; top: 20%; font-size: 3rem; }
-      .tierra { font-size: 2rem; offset-path: ellipse(50% 40% at 70% 20%); }
-      .floating-a2, .floating-b2 { font-size: 1.5rem; }
-      .card-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-      .section-claim {
-        margin: 2.5rem 0 1rem;
-      }
-      footer {
-        margin-top: auto;
-      }
-    }
-  </style>
+  @media (max-width:760px), (max-height:560px){
+    body{overflow-y:auto; height:auto; min-height:100svh;}
+    .topbar{padding:18px 20px 0;}
+    .content{padding:14px 20px 20px; gap:18px;}
+    .missions{gap:14px;}
+    .mission-card{flex:1 1 100%; max-width:380px; min-width:0;}
+    .mission-card h2{white-space:normal;}
+    .bg-glow{width:380px; height:380px;}
+  }
+</style>
 </head>
 <body>
 
-<div class="floating-bg">
-  <div class="floating-a2">a²</div>
-  <div class="floating-b2">b²</div>
-</div>
+<div class="bg-anim" id="bgAnim" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
+<div class="bg-glow b" aria-hidden="true"></div>
 
-<div class="solar-system">
-  <div class="sol">☀️</div>
-  <div class="tierra">🌍</div>
-</div>
+<header class="topbar">
+  <div class="brandtag"><span class="dot"></span> SECUENCIA321®</div>
+</header>
 
-<div class="wrapper">
-  <div class="header-main">
-    <div class="titulo-clase">
-      <h1>🌌 Encuentra el Sol</h1>
-      <p>Geometría Analítica · Elipse y focos · 5to Secundaria</p>
-    </div>
-    <div class="docente-info">
-      <div class="nombre">Situación de aprendizaje</div>
-      <div class="centro">Contextualizada e interactiva</div>
-    </div>
+<main class="content">
+  <div class="hero">
+    <div class="icon-row">📦 📚 ✏️ 📐</div>
+    <h1>El inventario del almacén escolar</h1>
+    <p>Una donación llegó sin clasificar y la directora necesita un inventario exacto. Recorre las tres misiones para dominar la correspondencia uno a uno.</p>
   </div>
 
-  <div class="section-claim">
-    <h2>🛰️ Secuencia didáctica</h2>
-  </div>
-
-  <div class="card-grid">
-    <!-- Cuestionario de inicio: abre inicio.html -->
-    <a href="inicio.html" class="card">
-      <div class="card-icon">🔭🛰️</div>
-      <h3>Misión 1: Reconocer la órbita</h3>
-      <p>Identifica forma, centro, orientación y dimensiones</p>
-      <span class="badge">📍 Recuperación diagnóstica</span>
+  <div class="missions">
+    <a class="mission-card card-1" href="inicio.html" aria-label="Misión 1: Primer vistazo al almacén">
+      <div class="icons">📦🔍</div>
+      <span class="m-tag">Misión 1</span>
+      <h2>Primer vistazo al almacén</h2>
+      <p>Explora la donación y descubre por qué contar sin método no basta.</p>
+      <span class="mission-pill">🔍 Explorar</span>
     </a>
-
-    <!-- Demostración guiada: abre desarrollo.html -->
-    <a href="desarrollo.html" class="card">
-      <div class="card-icon">☀️📐</div>
-      <h3>Misión 2: Localizar el Sol</h3>
-      <p>Calcula la distancia focal y ubica el Sol</p>
-      <span class="badge">🚀 Desarrollo guiado</span>
+    <a class="mission-card card-2" href="desarrollo.html" aria-label="Misión 2: Aprendiendo a contar con método">
+      <div class="icons">🔢✅</div>
+      <span class="m-tag">Misión 2</span>
+      <h2>Aprendiendo a contar con método</h2>
+      <p>Domina la correspondencia uno a uno en pantalla y en papel.</p>
+      <span class="mission-pill">🛠️ Contar con método</span>
     </a>
-
-    <!-- Desafío de memoria: ahora abre cierre.html -->
-    <a href="cierre.html" class="card">
-      <div class="card-icon">🛰️🔓</div>
-      <h3>Misión 3: Activar el sistema</h3>
-      <p>Verifica, calcula, localiza y activa la órbita</p>
-      <span class="badge">🏆 Evaluación gamificada</span>
+    <a class="mission-card card-3" href="cierre.html" aria-label="Misión 3: Entregando el inventario final">
+      <div class="icons">📋🏆</div>
+      <span class="m-tag">Misión 3</span>
+      <h2>Entregando el inventario final</h2>
+      <p>Supera cuatro desafíos y entrega el informe final a la directora.</p>
+      <span class="mission-pill">🏆 Entregar informe</span>
     </a>
   </div>
 
-  <footer>
-    <strong>Desarrollado por Miguel Ubiera</strong><br>
-    Clase diseñada para el Taller de Secuencias Didácticas Interactivas
-  </footer>
-</div>
+  <div class="clip-area">
+    <button class="clip-trigger" id="clipBtn" aria-expanded="false" aria-controls="clipMenu" aria-label="Materiales de apoyo">📎</button>
+    <nav class="clip-menu" id="clipMenu">
+      <a href="Gu%C3%ADa%20r%C3%A1pida.pdf" target="_blank" rel="noopener">📄 Guía rápida.pdf</a>
+      <a href="Secuencia%20did%C3%A1ctica.pdf" target="_blank" rel="noopener">📄 Secuencia didáctica.pdf</a>
+      <a href="Material%20de%20apoyo.pdf" target="_blank" rel="noopener">📄 Material de apoyo.pdf</a>
+    </nav>
+  </div>
+</main>
 
+<footer class="credit">Secuencia321® · Miguel Ubiera</footer>
+
+<script>
+(function(){
+  "use strict";
+  const bgItems=['📦','📚','✏️','📐','🔢','✅','🔺','📦','📚','✏️','🏫','📦'];
+  const bgAnim=document.getElementById('bgAnim');
+  bgItems.forEach((it,i)=>{
+    const s=document.createElement('span');
+    s.textContent=it;
+    if(/[0-9]/.test(it)) s.classList.add('num');
+    s.style.left=(3+(i*8.6)%94)+'%';
+    s.style.top=(4+(i*15.2)%88)+'%';
+    s.style.fontSize=(1.7+(i%4)*0.55)+'rem';
+    s.style.animationDuration=(16+(i%7)*1.8)+'s';
+    s.style.animationDelay=(-(i*1.6))+'s';
+    bgAnim.appendChild(s);
+  });
+  // Partículas de brillo sutil para reforzar la sensación de fondo vivo.
+  const DOTS=24;
+  for(let i=0;i<DOTS;i++){
+    const d=document.createElement('span');
+    d.className='dot';
+    d.style.left=(Math.random()*98)+'%';
+    d.style.top=(Math.random()*96)+'%';
+    d.style.animationDuration=(2.6+Math.random()*3.2)+'s';
+    d.style.animationDelay=(-(Math.random()*4))+'s';
+    bgAnim.appendChild(d);
+  }
+
+  const clipBtn=document.getElementById('clipBtn');
+  const clipMenu=document.getElementById('clipMenu');
+  clipBtn.addEventListener('click', ()=>{
+    const open=clipMenu.classList.toggle('open');
+    clipBtn.classList.toggle('open', open);
+    clipBtn.setAttribute('aria-expanded', open ? 'true':'false');
+  });
+  document.addEventListener('click', (e)=>{
+    if(!clipBtn.contains(e.target) && !clipMenu.contains(e.target)){
+      clipMenu.classList.remove('open'); clipBtn.classList.remove('open'); clipBtn.setAttribute('aria-expanded','false');
+    }
+  });
+})();
+</script>
 </body>
 </html>
