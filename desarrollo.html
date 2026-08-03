@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,7 +21,7 @@
     --accent-soft:rgba(184,92,58,.13);
     --accent2:#2a5f7a;
     --accent2-soft:rgba(42,95,122,.13);
-    --success:#4c8a5c;
+    --success:#3a7549;
     --success-bg:rgba(76,138,92,.14);
     --error:#c0483a;
     --error-bg:rgba(192,72,58,.13);
@@ -86,15 +87,15 @@
   .step-content{width:100%; display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:4px;}
   .feedback{min-height:32px; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; font-size:.92rem; padding:0 18px; text-align:center; border-radius:12px; opacity:0; transform:translateY(4px); transition:opacity .38s var(--ease), transform .38s var(--ease), padding .38s var(--ease); max-width:820px;}
   .feedback.show{opacity:1; transform:translateY(0); padding:8px 18px;}
-  .feedback.success{background:var(--success-bg); color:#2f5c3a;}
-  .feedback.error{background:var(--error-bg); color:#7a2e24;}
-  .feedback.neutral{background:var(--accent2-soft); color:#1c4258;}
+  .feedback.success{background:var(--success); color:#fff;}
+  .feedback.error{background:var(--error); color:#fff;}
+  .feedback.neutral{background:var(--accent2); color:#fff;}
 
   .opt{font-family:var(--font-body); font-weight:700; font-size:.93rem; background:var(--bg-card); border:2px solid var(--border-soft); color:var(--ink); border-radius:16px; padding:12px 20px; cursor:pointer; min-width:110px; transition:transform .32s var(--ease), box-shadow .32s var(--ease), border-color .32s var(--ease), background .32s var(--ease);}
   .opt:hover{transform:translateY(-3px); box-shadow:0 10px 20px rgba(0,0,0,.1); border-color:var(--accent2);}
   .opt.selected{border-color:var(--accent2); background:var(--accent2-soft);}
-  .opt.correct{border-color:var(--success); background:var(--success-bg); color:#2f5c3a;}
-  .opt.incorrect{border-color:var(--error); background:var(--error-bg); color:#7a2e24;}
+  .opt.correct{border-color:var(--success); background:var(--success); color:#fff;}
+  .opt.incorrect{border-color:var(--error); background:var(--error); color:#fff;}
   .option-grid{display:flex; gap:14px; flex-wrap:wrap; justify-content:center;}
 
   /* ---------- Cartel de formalización ---------- */
@@ -450,23 +451,23 @@ const PDF_BASE64 = "JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1l
   $('#btnRevisar').addEventListener('click', ()=> goTo(1,-1));
   $('#btnIndex').addEventListener('click', ()=> location.href='index.html');
   $('#btnCierre').addEventListener('click', ()=> location.href='cierre.html');
-  $('#btnReiniciar').addEventListener('click', ()=> location.reload());
+  $('#btnReiniciar').addEventListener('click', ()=> resetAll());
 
   /* Confeti */
   const stage=$('#stage');
   const confettiColors=['#b85c3a','#2a5f7a','#4c8a5c','#e4a24a','#f0ece6'];
   function confettiBurst(x,y){
-    for(let i=0;i<42;i++){
+    for(let i=0;i<70;i++){
       const p=document.createElement('div');
       p.className='confetti-piece';
-      const size=6+Math.random()*8;
+      const size=7+Math.random()*10;
       p.style.width=size+'px'; p.style.height=(size*.6)+'px';
       p.style.left=x+'px'; p.style.top=y+'px';
       p.style.background=confettiColors[i%confettiColors.length];
-      const dx=(Math.random()-0.5)*320, dy=140+Math.random()*190, rot=(Math.random()-0.5)*620;
-      p.animate([{transform:'translate(0,0) rotate(0deg)',opacity:1},{transform:`translate(${dx}px, ${dy}px) rotate(${rot}deg)`,opacity:0}],{duration:1450+Math.random()*200, easing:'cubic-bezier(.2,.7,.4,1)'});
+      const dx=(Math.random()-0.5)*560, dy=160+Math.random()*280, rot=(Math.random()-0.5)*700;
+      p.animate([{transform:'translate(0,0) rotate(0deg)',opacity:1},{transform:`translate(${dx}px, ${dy}px) rotate(${rot}deg)`,opacity:0}],{duration:1600+Math.random()*300, easing:'cubic-bezier(.2,.7,.4,1)'});
       stage.appendChild(p);
-      setTimeout(()=>p.remove(),1700);
+      setTimeout(()=>p.remove(),1950);
     }
   }
   function confettiFromEl(el){
@@ -521,6 +522,7 @@ const PDF_BASE64 = "JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1l
       setTimeout(()=>{
         it.classList.add('lit');
         it.querySelector('.num-badge').textContent=captured;
+        beep();
         if(captured===finalNumber) totalEl.textContent='Total: '+finalNumber;
       }, n*480);
     });
@@ -763,6 +765,7 @@ const PDF_BASE64 = "JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1l
         it.classList.add('lit');
         it.querySelector('.num-badge').textContent=idx+1;
         $('#countupFinal').textContent=idx+1;
+        beep();
       },(idx+1)*420);
     });
   }
@@ -788,6 +791,29 @@ const PDF_BASE64 = "JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1l
     if(screenEls['7'].classList.contains('active') && !played7){ played7=true; playFinalCountup(); }
   });
   obs7.observe(screenEls['7'], {attributes:true, attributeFilter:['class']});
+
+  /* ---------- Reinicio suave (sin recargar la página) ---------- */
+  function resetAll(){
+    goTo(0,-1);
+    Object.keys(completed).forEach(k=> delete completed[k]);
+    $$('.opt').forEach(o=>{ o.classList.remove('selected','correct','incorrect'); o.disabled=false; });
+    $$('.feedback').forEach(f=>{ f.className='feedback'; f.innerHTML=''; });
+    demo1Items.forEach(it=>{it.classList.remove('lit'); it.querySelector('.num-badge').textContent='';});
+    $('#demoTotal1').textContent=' ';
+    demoA.forEach(it=>{it.classList.remove('lit'); it.querySelector('.num-badge').textContent='';});
+    $('#totalA').textContent=' ';
+    demoB.forEach(it=>{it.classList.remove('lit'); it.querySelector('.num-badge').textContent='';});
+    $('#totalB').textContent=' ';
+    buildGeo();
+    buildBooks2();
+    pdfDownloaded=false; paperConfirmed=false;
+    $('#confirmPaperBtn').classList.remove('on');
+    buildRound1();
+    played7=false;
+    demoFinalItems.forEach(it=>{it.classList.remove('lit'); it.querySelector('.num-badge').textContent='';});
+    $('#countupFinal').textContent='0';
+    updateNav();
+  }
 
   updateNav();
 })();
