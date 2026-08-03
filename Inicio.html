@@ -1,0 +1,646 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Encuentra el Sol · Misión 1: Reconocer la órbita</title>
+  <meta name="description" content="Recuperación diagnóstica interactiva sobre la forma, el centro, la orientación y las dimensiones de una órbita elíptica.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --space: #0a2a32;
+      --cream: #fefaf2;
+      --cream-soft: #fffbf0;
+      --blue: #1a5f82;
+      --orange: #c0672c;
+      --gold: #f3b33d;
+      --green: #2e7d32;
+      --red: #b8452c;
+      --line: #ecd9b4;
+    }
+    body {
+      background: radial-gradient(circle at 78% 18%, #154c5d 0%, var(--space) 42%, #071b22 100%);
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 18px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .3;
+      background-image:
+        radial-gradient(circle at 10% 20%, #fff 0 1px, transparent 1.5px),
+        radial-gradient(circle at 30% 70%, #fff 0 1px, transparent 1.5px),
+        radial-gradient(circle at 65% 35%, #fff 0 1px, transparent 1.5px),
+        radial-gradient(circle at 88% 72%, #fff 0 1px, transparent 1.5px);
+      background-size: 180px 180px, 230px 230px, 280px 280px, 320px 320px;
+    }
+    .back-arrow {
+      position: fixed; top: 20px; left: 20px;
+      background: rgba(255,248,225,.9);
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: bold; color: var(--blue);
+      text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      transition: .2s; z-index: 400; border: 1px solid var(--line);
+    }
+    .back-arrow:hover { background: #fef0cf; transform: scale(1.06); color: var(--orange); }
+    .timer {
+      position: fixed; bottom: 18px; left: 20px;
+      background: rgba(10,42,50,.82); color: #fef0cf;
+      padding: 6px 12px; border-radius: 50px;
+      font-family: monospace; font-size: .85rem; font-weight: 600;
+      letter-spacing: 1px; z-index: 300; pointer-events: none;
+    }
+    .stage { width: min(1300px, 100%); height: calc(100dvh - 24px); max-height: 900px; position: relative; z-index: 2; display: flex; align-items: center; }
+    .hidden { display: none !important; }
+
+    /* Pantalla de apertura */
+    .intro-card {
+      background: linear-gradient(145deg, rgba(254,250,242,.98), rgba(255,251,240,.96));
+      border-radius: 34px; padding: clamp(20px, 3.4vw, 42px);
+      box-shadow: 0 25px 45px rgba(0,0,0,.38);
+      display: grid; grid-template-columns: 1.05fr .95fr;
+      gap: 36px; align-items: center; overflow: hidden;
+      border: 1px solid rgba(255,221,160,.65);
+    }
+    .intro-label {
+      display: inline-block; background: #0f2f3f; color: #ffe6b3;
+      padding: 7px 16px; border-radius: 30px; font-weight: 800;
+      font-size: .78rem; letter-spacing: .7px; text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .intro-copy h1 { color: var(--blue); font-size: clamp(2rem, 5vw, 3.6rem); line-height: 1.03; }
+    .intro-copy h2 { color: var(--orange); font-size: clamp(1.05rem, 2vw, 1.4rem); margin: 12px 0 18px; }
+    .intro-copy p { color: #2d5363; line-height: 1.65; font-size: 1rem; max-width: 650px; }
+    .mission-list { margin: 21px 0; display: grid; gap: 9px; }
+    .mission-item {
+      background: #eef3e6; color: #2a5a3a; border-radius: 18px;
+      padding: 10px 14px; font-weight: 700; border-left: 5px solid #5fad56;
+    }
+    .primary-btn, .secondary-btn {
+      border: none; border-radius: 40px; padding: 9px 20px;
+      font-weight: 800; cursor: pointer; font-size: .95rem; transition: .2s;
+    }
+    .primary-btn { background: linear-gradient(135deg, #ffb347, #f39c12); color: #19313a; box-shadow: 0 7px 16px rgba(230,126,34,.25); }
+    .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(230,126,34,.35); }
+    .secondary-btn { background: #d9d2c4; color: #2d2b20; }
+    .intro-visual {
+      min-height: 275px; position: relative; border-radius: 32px;
+      background: radial-gradient(circle at 66% 50%, #ffd45c 0 20px, #f59e0b 21px 34px, transparent 35px),
+                  radial-gradient(ellipse at center, transparent 0 43%, rgba(125,211,252,.78) 44% 45%, transparent 46%),
+                  linear-gradient(145deg, #0b1a2e, #0f3946);
+      overflow: hidden; box-shadow: inset 0 0 45px rgba(0,0,0,.35);
+    }
+    .intro-visual::before {
+      content: "ÓRBITA"; position: absolute; top: 24px; left: 28px;
+      color: #b9d9ff; font-weight: 800; letter-spacing: 3px; opacity: .78;
+    }
+    .planet {
+      position: absolute; left: 15%; top: 48%; font-size: 3.2rem;
+      filter: drop-shadow(0 0 8px rgba(64,224,208,.75));
+      animation: drift 4s ease-in-out infinite alternate;
+    }
+    .unknown-sun {
+      position: absolute; right: 22%; top: 41%; font-size: 4.6rem;
+      color: #ffe19a; text-shadow: 0 0 18px rgba(255,205,90,.45);
+      font-weight: 900;
+    }
+    .visual-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-self: center;
+    }
+    .visual-caption {
+      margin: 0;
+      padding: 7px 12px;
+      color: #355f70;
+      text-align: center;
+      font-size: .82rem;
+      line-height: 1.3;
+      font-weight: 700;
+    }
+    @keyframes drift { from { transform: translate(-8px,-8px); } to { transform: translate(20px,12px); } }
+
+    /* Cuestionario */
+    .quiz-wrapper {
+      width: 100%; max-height: calc(100dvh - 24px); background: var(--cream); border-radius: 34px;
+      box-shadow: 0 25px 40px rgba(0,0,0,.35);
+      display: flex; flex-wrap: wrap; overflow: hidden;
+    }
+    .left-panel {
+      flex: 1.05; min-width: 330px; background: var(--cream-soft);
+      padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: .65rem;
+      border-right: 2px solid var(--line);
+    }
+    .title-area h2 { font-size: 1.25rem; color: var(--blue); font-weight: 800; }
+    .title-area p { font-size: .78rem; color: var(--orange); font-weight: 700; margin-top: 4px; }
+    .phase-banner {
+      background: #0f2f3f; color: #ffe6b3; padding: 8px 14px;
+      border-radius: 28px; text-align: center; font-weight: 800; font-size: .78rem;
+      letter-spacing: .4px;
+    }
+    .question-text {
+      background: #eef3e6; padding: .7rem .9rem; border-radius: 26px;
+      text-align: center; font-weight: 800; font-size: .95rem; color: #2a5a3a;
+      box-shadow: inset 0 1px 2px #fff8, 0 4px 10px rgba(0,0,0,.05);
+    }
+    .color-options { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 2px 0; }
+    .color-btn {
+      border: none; border-radius: 60px; padding: 9px 12px;
+      font-size: .88rem; font-weight: 800; cursor: pointer; transition: .08s;
+      box-shadow: 0 4px 8px rgba(0,0,0,.1); width: 88%; max-width: 310px;
+      min-height: 38px; text-align: center;
+    }
+    .color-red { background: #e34234; color: white; border-bottom: 3px solid #921f12; }
+    .color-yellow { background: var(--gold); color: #2c2b26; border-bottom: 3px solid #bc7a1a; }
+    .color-green { background: #5fad56; color: white; border-bottom: 3px solid #2c6e2f; }
+    .color-btn:hover { transform: translateY(-2px); }
+    .color-btn:active { transform: translateY(2px); }
+    .nav-buttons { display: flex; justify-content: center; gap: 14px; margin-top: 2px; }
+    .nav-btn {
+      background: #b9a77d; border: none; padding: 7px 17px;
+      border-radius: 40px; font-weight: 800; color: #2d2b20; cursor: pointer;
+    }
+    .nav-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .progress {
+      background: #e3d7c4; display: inline-block; padding: 5px 16px;
+      border-radius: 30px; font-size: .75rem; font-weight: 700;
+      text-align: center; align-self: center;
+    }
+    .right-canvas {
+      flex: 1.8; background: #fef7ea; display: flex;
+      justify-content: center; align-items: center; padding: 8px;
+    }
+    .canvas-box {
+      background: white; border-radius: 28px; box-shadow: 0 12px 22px rgba(0,0,0,.1);
+      padding: 5px; border: 1px solid #e0cdb0; width: 100%; text-align: center;
+    }
+    canvas { display: block; margin: 0 auto; border-radius: 20px; background: #fff; width: 100%; height: auto; }
+    .toast-message {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      color: #ffefcf; padding: 7px 17px; border-radius: 60px;
+      font-weight: 800; z-index: 500; box-shadow: 0 4px 12px rgba(0,0,0,.3);
+      opacity: 0; transition: opacity .1s; pointer-events: none;
+    }
+    .toast-show { opacity: 1; }
+    .toast-correct { background: var(--green); color: white; }
+    .toast-wrong { background: var(--red); }
+
+    /* Cierre de misión */
+    .completion-card {
+      width: 100%; max-height: calc(100dvh - 24px); overflow: hidden;
+      background: linear-gradient(145deg, #fefaf2, #fff7e7);
+      border-radius: 34px; padding: clamp(18px, 2.8vw, 32px);
+      box-shadow: 0 25px 45px rgba(0,0,0,.38); text-align: center;
+      border: 1px solid rgba(255,221,160,.7);
+    }
+    .completion-icon { font-size: 2.7rem; margin-bottom: 2px; }
+    .completion-card h2 { color: var(--blue); font-size: clamp(1.55rem, 3vw, 2.25rem); }
+    .completion-card .summary { color: #355f70; margin: 8px auto; max-width: 760px; line-height: 1.42; font-size: .92rem; }
+    .unresolved {
+      background: #0f2f3f; color: #ffe6b3; border-radius: 28px;
+      margin: 12px auto; padding: 14px 18px; max-width: 720px;
+    }
+    .unresolved small { display: block; color: #b9d9ff; margin-bottom: 6px; font-weight: 700; }
+    .unresolved strong { font-size: clamp(1.05rem, 2.4vw, 1.5rem); }
+    .completion-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+    @media (max-width: 820px) {
+      .stage { height: auto; max-height: none; }
+      .intro-card { grid-template-columns: 1fr; }
+      .intro-visual { min-height: 280px; }
+      .quiz-wrapper { flex-direction: column; }
+      .left-panel { border-right: none; border-bottom: 2px solid var(--line); }
+      .timer { bottom: 10px; left: 10px; font-size: .7rem; }
+      .back-arrow { top: 10px; left: 10px; width: 36px; height: 36px; font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-arrow" aria-label="Volver a la secuencia didáctica">←</a>
+
+  <main class="stage">
+    <section id="introScreen" class="intro-card">
+      <div class="intro-copy">
+        <span class="intro-label">Recuperación diagnóstica · Misión 1</span>
+        <h1>Reconocer la órbita</h1>
+        <h2>Antes de localizar el Sol, debemos comprender la trayectoria.</h2>
+        <p>
+          Un planeta se desplaza alrededor de una estrella siguiendo una trayectoria elíptica.
+          La misión comienza reconociendo la forma de la órbita, su centro, su orientación y sus dimensiones básicas.
+        </p>
+        <div class="mission-list">
+          <div class="mission-item">1. Reconocer la trayectoria elíptica.</div>
+          <div class="mission-item">2. Localizar el centro de la órbita.</div>
+          <div class="mission-item">3. Analizar orientación y semiejes.</div>
+        </div>
+        <button id="startBtn" class="primary-btn">🚀 Iniciar exploración</button>
+      </div>
+      <div class="visual-column">
+        <div class="intro-visual" aria-label="Representación conceptual de una órbita elíptica">
+          <div class="planet">🌍</div>
+          <div class="unknown-sun">?</div>
+        </div>
+        <p class="visual-caption">La trayectoria está definida, pero la estrella aún no ha sido localizada.</p>
+      </div>
+    </section>
+
+    <section id="quizScreen" class="quiz-wrapper hidden">
+      <div class="left-panel">
+        <div class="title-area">
+          <h2>🌌 Misión 1: Reconocer la órbita</h2>
+          <p>Recuperación diagnóstica · Sistema orbital</p>
+        </div>
+        <div class="phase-banner" id="phaseBanner">ETAPA 1 · RECONOCER LA TRAYECTORIA</div>
+        <div class="question-text" id="questionText">Cargando...</div>
+        <div class="color-options" id="optionsContainer"></div>
+        <div class="nav-buttons">
+          <button class="nav-btn" id="prevBtn">◀ Anterior</button>
+          <button class="nav-btn" id="nextBtn">Siguiente ▶</button>
+        </div>
+        <div class="progress" id="progressText">Pregunta 1 / 10</div>
+      </div>
+      <div class="right-canvas">
+        <div class="canvas-box">
+          <canvas id="orbitCanvas" width="560" height="560" aria-label="Representación gráfica de la trayectoria"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="completionScreen" class="completion-card hidden">
+      <div class="completion-icon">🛰️</div>
+      <h2>Primera misión completada</h2>
+      <p class="summary">
+        Ya reconocimos la forma de la órbita, localizamos su centro, identificamos su orientación
+        y analizamos sus dimensiones mediante los semiejes.
+      </p>
+      <div class="unresolved">
+        <small>LA PREGUNTA PRINCIPAL SIGUE ABIERTA</small>
+        <strong>¿Dónde debemos colocar el Sol?</strong>
+        <p style="margin-top:8px; color:#d7e9f5;">Para descubrirlo, necesitaremos localizar los focos de la elipse.</p>
+      </div>
+      <div class="completion-actions">
+        <button id="restartBtn" class="secondary-btn">🔄 Revisar la misión</button>
+        <button id="continueBtn" class="primary-btn">Continuar con el análisis orbital →</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="timer" id="timer">00:00:00</div>
+  <div id="toast" class="toast-message">Correcto</div>
+
+  <script>
+    // Cronómetro
+    let startTime = Date.now();
+    function formatTime(ms) {
+      const total = Math.floor(ms / 1000);
+      const hours = Math.floor(total / 3600);
+      const minutes = Math.floor((total % 3600) / 60);
+      const seconds = total % 60;
+      return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    }
+    setInterval(() => {
+      document.getElementById('timer').textContent = formatTime(Date.now() - startTime);
+    }, 1000);
+
+    // Pantallas y controles
+    const introScreen = document.getElementById('introScreen');
+    const quizScreen = document.getElementById('quizScreen');
+    const completionScreen = document.getElementById('completionScreen');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const continueBtn = document.getElementById('continueBtn');
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const progressText = document.getElementById('progressText');
+    const phaseBanner = document.getElementById('phaseBanner');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const toast = document.getElementById('toast');
+
+    // Canvas
+    const canvas = document.getElementById('orbitCanvas');
+    const ctx = canvas.getContext('2d');
+    const SIZE = 560;
+    const X_MIN = -12, X_MAX = 12, Y_MIN = -12, Y_MAX = 12;
+
+    function worldToCanvas(x, y) {
+      return {
+        x: ((x - X_MIN) / (X_MAX - X_MIN)) * SIZE,
+        y: SIZE - ((y - Y_MIN) / (Y_MAX - Y_MIN)) * SIZE
+      };
+    }
+    function clearCanvas() {
+      ctx.clearRect(0, 0, SIZE, SIZE);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, SIZE, SIZE);
+    }
+    function drawGridAndAxes() {
+      clearCanvas();
+      ctx.save();
+      ctx.strokeStyle = '#b7c4d4';
+      ctx.lineWidth = .65;
+      ctx.globalAlpha = .72;
+      for (let x = X_MIN; x <= X_MAX; x++) {
+        const p1 = worldToCanvas(x, Y_MIN), p2 = worldToCanvas(x, Y_MAX);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      }
+      for (let y = Y_MIN; y <= Y_MAX; y++) {
+        const p1 = worldToCanvas(X_MIN, y), p2 = worldToCanvas(X_MAX, y);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      const x1 = worldToCanvas(X_MIN,0), x2 = worldToCanvas(X_MAX,0);
+      const y1 = worldToCanvas(0,Y_MIN), y2 = worldToCanvas(0,Y_MAX);
+      ctx.strokeStyle = '#1a5f7a'; ctx.lineWidth = 2.3;
+      ctx.beginPath(); ctx.moveTo(x1.x,x1.y); ctx.lineTo(x2.x,x2.y); ctx.moveTo(y1.x,y1.y); ctx.lineTo(y2.x,y2.y); ctx.stroke();
+      ctx.font = "bold 10px 'Courier New', monospace";
+      ctx.fillStyle = '#244e67';
+      for (let n = -12; n <= 12; n += 2) {
+        if (n !== 0) {
+          const px = worldToCanvas(n,0); ctx.fillText(String(n), px.x-6, px.y-5);
+          const py = worldToCanvas(0,n); ctx.fillText(String(n), py.x+6, py.y+4);
+        }
+      }
+      ctx.restore();
+    }
+    function drawEllipse(h, k, rx, ry, color='#e67e22') {
+      ctx.beginPath();
+      for (let i=0; i<=220; i++) {
+        const t = (i/220)*Math.PI*2;
+        const p = worldToCanvas(h + rx*Math.cos(t), k + ry*Math.sin(t));
+        if (i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+      }
+      ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+    }
+    function drawSymmetry(h,k) {
+      ctx.save(); ctx.setLineDash([6,8]); ctx.strokeStyle='#e68a3e'; ctx.lineWidth=1.4;
+      let a=worldToCanvas(X_MIN,k), b=worldToCanvas(X_MAX,k);
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      a=worldToCanvas(h,Y_MIN); b=worldToCanvas(h,Y_MAX);
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      ctx.restore();
+    }
+    function drawCenter(h,k) {
+      const p=worldToCanvas(h,k);
+      ctx.beginPath(); ctx.arc(p.x,p.y,7,0,Math.PI*2); ctx.fillStyle='#1a5f82'; ctx.fill();
+      ctx.font="bold 12px 'Segoe UI'"; ctx.fillStyle='#143a50'; ctx.fillText(`Centro (${h}, ${k})`,p.x+10,p.y-9);
+    }
+    function drawOrbit(data) {
+      drawGridAndAxes();
+      drawSymmetry(data.h,data.k);
+      drawEllipse(data.h,data.k,data.rx,data.ry);
+      if (data.showCenter) drawCenter(data.h,data.k);
+      if (data.labels) {
+        ctx.font="bold 13px 'Segoe UI'"; ctx.fillStyle='#28576d';
+        const right=worldToCanvas(data.h+data.rx,data.k);
+        const top=worldToCanvas(data.h,data.k+data.ry);
+        ctx.fillText(`a = ${data.rx}`, right.x-38, right.y-12);
+        ctx.fillText(`b = ${data.ry}`, top.x+10, top.y+18);
+      }
+    }
+    function drawTrajectoryChoices() {
+      clearCanvas();
+      ctx.fillStyle='#f7fbff'; ctx.fillRect(0,0,SIZE,SIZE);
+      ctx.font="bold 15px 'Segoe UI'"; ctx.fillStyle='#315b6d'; ctx.fillText('Tres posibles trayectorias orbitales',155,48);
+      const items=[
+        {x:115,y:285,kind:'circle',color:'#e34234',label:'A'},
+        {x:280,y:285,kind:'ellipse',color:'#f3b33d',label:'B'},
+        {x:445,y:285,kind:'parabola',color:'#5fad56',label:'C'}
+      ];
+      items.forEach(item=>{
+        ctx.strokeStyle=item.color; ctx.lineWidth=5;
+        if(item.kind==='circle') { ctx.beginPath(); ctx.arc(item.x,item.y,58,0,Math.PI*2); ctx.stroke(); }
+        if(item.kind==='ellipse') { ctx.beginPath(); ctx.ellipse(item.x,item.y,78,48,0,0,Math.PI*2); ctx.stroke(); }
+        if(item.kind==='parabola') {
+          ctx.beginPath();
+          for(let i=-55;i<=55;i++){
+            const x=item.x+i, y=item.y-55+(i*i)/55;
+            if(i===-55) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+          }
+          ctx.stroke();
+        }
+        ctx.fillStyle=item.color; ctx.font="bold 14px 'Segoe UI'"; ctx.fillText(item.label,item.x-25,390);
+      });
+    }
+    function drawCircleVsEllipse() {
+      clearCanvas();
+      ctx.fillStyle = '#f7fbff';
+      ctx.fillRect(0, 0, SIZE, SIZE);
+      ctx.font = "bold 15px 'Segoe UI'";
+      ctx.fillStyle = '#315b6d';
+      ctx.fillText('Compara las tres trayectorias', 175, 58);
+
+      // A: circunferencia verde
+      ctx.strokeStyle = '#5fad56';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(110, 280, 60, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // B: elipse amarilla
+      ctx.strokeStyle = '#f3b33d';
+      ctx.beginPath();
+      ctx.ellipse(280, 280, 78, 48, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // C: triángulo rojo
+      ctx.strokeStyle = '#e34234';
+      ctx.beginPath();
+      ctx.moveTo(450, 215);
+      ctx.lineTo(390, 345);
+      ctx.lineTo(510, 345);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.font = "bold 17px 'Segoe UI'";
+      ctx.fillStyle = '#315b6d';
+      ctx.fillText('A', 104, 405);
+      ctx.fillText('B', 274, 405);
+      ctx.fillText('C', 444, 405);
+    }
+
+    const questions = [
+      {
+        phase:'ETAPA 1 · RECONOCER LA TRAYECTORIA',
+        text:'🔭 ¿Cuál de estas posibles trayectorias tiene forma de elipse?',
+        visual:'choices',
+        options:[
+          {color:'red',text:'A',correct:false},
+          {color:'yellow',text:'B',correct:true},
+          {color:'green',text:'C',correct:false}
+        ]
+      },
+      {
+        phase:'ETAPA 1 · RECONOCER LA TRAYECTORIA',
+        text:'🛰️ ¿Cuál de las tres trayectorias es elíptica?',
+        visual:'circleVsEllipse',
+        options:[
+          {color:'green',text:'A',correct:false},
+          {color:'yellow',text:'B',correct:true},
+          {color:'red',text:'C',correct:false}
+        ]
+      },
+      {
+        phase:'ETAPA 2 · LOCALIZAR EL CENTRO',
+        text:'🎯 ¿En qué punto está el centro de esta órbita?',
+        orbit:{h:3,k:2,rx:4,ry:2.5,showCenter:false},
+        options:[
+          {color:'red',text:'(3, 2)',correct:true},
+          {color:'yellow',text:'(0, 0)',correct:false},
+          {color:'green',text:'(-3, -2)',correct:false}
+        ]
+      },
+      {
+        phase:'ETAPA 2 · LOCALIZAR EL CENTRO',
+        text:'🎯 ¿En qué punto está el centro de esta órbita?',
+        orbit:{h:0,k:0,rx:5,ry:3,showCenter:false},
+        options:[
+          {color:'red',text:'(2, -1)',correct:false},
+          {color:'yellow',text:'(0, 0)',correct:true},
+          {color:'green',text:'(-2, 1)',correct:false}
+        ]
+      },
+      {
+        phase:'ETAPA 2 · LOCALIZAR EL CENTRO',
+        text:'🎯 ¿En qué punto está el centro de esta órbita?',
+        orbit:{h:-2,k:1,rx:4,ry:2.5,showCenter:false},
+        options:[
+          {color:'red',text:'(2, -1)',correct:false},
+          {color:'yellow',text:'(0, 0)',correct:false},
+          {color:'green',text:'(-2, 1)',correct:true}
+        ]
+      },
+      {
+        phase:'ETAPA 3 · ANALIZAR LA ORIENTACIÓN',
+        text:'📐 ¿En qué dirección se extiende principalmente esta órbita?',
+        orbit:{h:1,k:-1,rx:5,ry:3,showCenter:false},
+        options:[
+          {color:'red',text:'Horizontal',correct:true},
+          {color:'yellow',text:'Vertical',correct:false},
+          {color:'green',text:'Igual en ambas direcciones',correct:false}
+        ]
+      },
+      {
+        phase:'ETAPA 3 · ANALIZAR LA ORIENTACIÓN',
+        text:'📐 ¿En qué dirección se extiende principalmente esta órbita?',
+        orbit:{h:-1,k:2,rx:3,ry:5,showCenter:false},
+        options:[
+          {color:'red',text:'Horizontal',correct:false},
+          {color:'yellow',text:'Vertical',correct:true},
+          {color:'green',text:'Igual en ambas direcciones',correct:false}
+        ]
+      },
+      {
+        phase:'ETAPA 4 · RECONOCER LAS DIMENSIONES',
+        text:'📏 ¿Cuál es el valor del semieje mayor a?',
+        orbit:{h:0,k:0,rx:5,ry:3,showCenter:false,labels:false},
+        options:[
+          {color:'red',text:'a = 3',correct:false},
+          {color:'yellow',text:'a = 4',correct:false},
+          {color:'green',text:'a = 5',correct:true}
+        ]
+      },
+      {
+        phase:'ETAPA 4 · RECONOCER LAS DIMENSIONES',
+        text:'📏 ¿Cuál es el valor del semieje menor b?',
+        orbit:{h:0,k:0,rx:5,ry:3,showCenter:false,labels:false},
+        options:[
+          {color:'red',text:'b = 3',correct:true},
+          {color:'yellow',text:'b = 5',correct:false},
+          {color:'green',text:'b = 2',correct:false}
+        ]
+      },
+      {
+        phase:'ETAPA 4 · RECONOCER LAS DIMENSIONES',
+        text:'📏 En esta órbita, ¿cuáles son los valores correctos de los semiejes?',
+        orbit:{h:-1,k:2,rx:7,ry:4,showCenter:false,labels:false},
+        options:[
+          {color:'red',text:'a = 4 y b = 7',correct:false},
+          {color:'yellow',text:'a = 7 y b = 4',correct:true},
+          {color:'green',text:'a = 7 y b = 3',correct:false}
+        ]
+      }
+    ];
+
+    let currentIndex = 0;
+    let waiting = false;
+    let toastTimeout = null;
+
+    function showToast(message, correct) {
+      clearTimeout(toastTimeout);
+      toast.textContent = correct ? `✓ ${message}` : `✕ ${message}`;
+      toast.className = `toast-message toast-show ${correct ? 'toast-correct' : 'toast-wrong'}`;
+      toastTimeout = setTimeout(() => toast.classList.remove('toast-show'), 900);
+    }
+    function renderQuestion() {
+      const q = questions[currentIndex];
+      phaseBanner.textContent = q.phase;
+      questionText.textContent = q.text;
+      progressText.textContent = `Pregunta ${currentIndex + 1} / ${questions.length}`;
+      prevBtn.disabled = currentIndex === 0;
+      nextBtn.disabled = currentIndex === questions.length - 1;
+      optionsContainer.innerHTML = '';
+      q.options.forEach(opt => {
+        const button = document.createElement('button');
+        button.className = `color-btn color-${opt.color}`;
+        button.textContent = opt.text;
+        button.addEventListener('click', () => handleAnswer(opt.correct));
+        optionsContainer.appendChild(button);
+      });
+      if (q.visual === 'choices') drawTrajectoryChoices();
+      else if (q.visual === 'circleVsEllipse') drawCircleVsEllipse();
+      else if (q.orbit) drawOrbit(q.orbit);
+      waiting = false;
+    }
+    function handleAnswer(correct) {
+      if (waiting) return;
+      if (!correct) {
+        showToast('Observa nuevamente la trayectoria', false);
+        return;
+      }
+      showToast('Respuesta correcta', true);
+      waiting = true;
+      setTimeout(() => {
+        if (currentIndex < questions.length - 1) {
+          currentIndex++;
+          renderQuestion();
+        } else {
+          quizScreen.classList.add('hidden');
+          completionScreen.classList.remove('hidden');
+        }
+      }, 650);
+    }
+
+    startBtn.addEventListener('click', () => {
+      introScreen.classList.add('hidden');
+      quizScreen.classList.remove('hidden');
+      startTime = Date.now();
+      currentIndex = 0;
+      renderQuestion();
+    });
+    prevBtn.addEventListener('click', () => {
+      if (!waiting && currentIndex > 0) { currentIndex--; renderQuestion(); }
+    });
+    nextBtn.addEventListener('click', () => {
+      if (!waiting && currentIndex < questions.length - 1) { currentIndex++; renderQuestion(); }
+    });
+    restartBtn.addEventListener('click', () => {
+      completionScreen.classList.add('hidden');
+      quizScreen.classList.remove('hidden');
+      currentIndex = 0; startTime = Date.now(); renderQuestion();
+    });
+    continueBtn.addEventListener('click', () => { window.location.href = 'desarrollo.html'; });
+  </script>
+</body>
+</html>

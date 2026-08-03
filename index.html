@@ -1,0 +1,334 @@
+
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Encuentra el sol · Secuencia didáctica interactiva</title>
+  <meta name="description" content="Órbita elíptica interactiva para clase de Geometría Analítica">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(145deg, #0b1a2e 0%, #0f212f 100%);
+      min-height: 100vh;
+      color: #f0f6ff;
+      position: relative;
+      overflow-x: hidden;
+      font-size: 12.6px;
+    }
+
+    .floating-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .floating-a2 {
+      position: absolute;
+      top: 20%;
+      left: 8%;
+      font-size: 2.2rem;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      color: #ffb347;
+      opacity: 0.35;
+      animation: flotar 14s infinite alternate ease-in-out;
+      z-index: 1;
+    }
+    .floating-b2 {
+      position: absolute;
+      bottom: 25%;
+      right: 6%;
+      font-size: 2.2rem;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      color: #7dd3fc;
+      opacity: 0.35;
+      animation: flotar 9s infinite alternate-reverse;
+      z-index: 1;
+    }
+
+    @keyframes flotar {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(15px) rotate(3deg); }
+    }
+
+    .solar-system {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .sol {
+      position: absolute;
+      left: 75%;
+      top: 22%;
+      transform: translate(-50%, -50%);
+      font-size: 3.8rem;
+      filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.7));
+      z-index: 2;
+      animation: brillar 3s infinite alternate;
+    }
+
+    @keyframes brillar {
+      from { filter: drop-shadow(0 0 6px rgba(255,215,0,0.5)); transform: translate(-50%, -50%) scale(1); }
+      to { filter: drop-shadow(0 0 20px rgba(255,215,0,0.9)); transform: translate(-50%, -50%) scale(1.04); }
+    }
+
+    .tierra {
+      position: absolute;
+      font-size: 2.6rem;
+      filter: drop-shadow(0 0 8px rgba(64,224,208,0.8));
+      offset-path: ellipse(45% 38% at 75% 22%);
+      animation: orbitar 6s infinite linear;
+      z-index: 2;
+    }
+
+    @keyframes orbitar {
+      0% { offset-distance: 0%; }
+      100% { offset-distance: 100%; }
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 3;
+      max-width: 1170px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 1rem 1.8rem 1.8rem;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      border-bottom: 2px solid rgba(255,215,140,0.5);
+      padding-bottom: 0.6rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(2px);
+    }
+
+    .titulo-clase h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #FFE6B0, #FFB347);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+    .titulo-clase p {
+      font-size: 0.75rem;
+      color: #b9d9ff;
+      margin-top: 0.15rem;
+    }
+
+    .docente-info {
+      text-align: right;
+      font-weight: 500;
+      background: rgba(0,0,0,0.3);
+      padding: 0.25rem 0.7rem;
+      border-radius: 30px;
+      backdrop-filter: blur(4px);
+    }
+    .docente-info .nombre {
+      font-size: 0.9rem;
+      color: #FFDEAD;
+    }
+    .docente-info .centro {
+      font-size: 0.65rem;
+      color: #cbd5e6;
+    }
+
+    .section-claim {
+      text-align: center;
+      margin: 3.5rem 0 1.2rem;
+    }
+    .section-claim h2 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      display: inline-block;
+      background: rgba(0,0,0,0.4);
+      padding: 0.25rem 1rem;
+      border-radius: 40px;
+      backdrop-filter: blur(8px);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.5rem;
+      margin: 1rem 0 0.8rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 1.2rem 0.8rem;
+      text-align: center;
+      transition: all 0.25s ease;
+      border: 1px solid rgba(255,255,200,0.25);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      background: rgba(255, 255, 245, 0.2);
+      border-color: #ffcc77;
+      box-shadow: 0 12px 20px rgba(0,0,0,0.3);
+    }
+
+    .card-icon {
+      font-size: 2.6rem;
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 0.1rem 0;
+    }
+
+    .card p {
+      font-size: 0.75rem;
+      color: #e2e8ff;
+      max-width: 90%;
+    }
+
+    .badge {
+      background: #ffb347;
+      color: #1e2a3a;
+      font-weight: bold;
+      font-size: 0.65rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.3rem;
+      display: inline-block;
+    }
+
+    footer {
+      margin-top: auto;
+      text-align: center;
+      font-size: 0.7rem;
+      color: #b9d0e7;
+      border-top: 1px solid rgba(255,215,140,0.3);
+      padding-top: 1rem;
+    }
+    footer strong {
+      color: #FFDE9E;
+    }
+
+    @media (max-width: 680px) {
+      .wrapper { padding: 0.8rem 1rem 1.2rem; }
+      .header-main { flex-direction: column; align-items: center; text-align: center; }
+      .docente-info { text-align: center; }
+      .card h3 { font-size: 1rem; }
+      .sol { left: 70%; top: 20%; font-size: 3rem; }
+      .tierra { font-size: 2rem; offset-path: ellipse(50% 40% at 70% 20%); }
+      .floating-a2, .floating-b2 { font-size: 1.5rem; }
+      .card-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+      .section-claim {
+        margin: 2.5rem 0 1rem;
+      }
+      footer {
+        margin-top: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="floating-bg">
+  <div class="floating-a2">a²</div>
+  <div class="floating-b2">b²</div>
+</div>
+
+<div class="solar-system">
+  <div class="sol">☀️</div>
+  <div class="tierra">🌍</div>
+</div>
+
+<div class="wrapper">
+  <div class="header-main">
+    <div class="titulo-clase">
+      <h1>🌌 Encuentra el Sol</h1>
+      <p>Geometría Analítica · Elipse y focos · 5to Secundaria</p>
+    </div>
+    <div class="docente-info">
+      <div class="nombre">Situación de aprendizaje</div>
+      <div class="centro">Contextualizada e interactiva</div>
+    </div>
+  </div>
+
+  <div class="section-claim">
+    <h2>🛰️ Secuencia didáctica</h2>
+  </div>
+
+  <div class="card-grid">
+    <!-- Cuestionario de inicio: abre inicio.html -->
+    <a href="inicio.html" class="card">
+      <div class="card-icon">🔭🛰️</div>
+      <h3>Misión 1: Reconocer la órbita</h3>
+      <p>Identifica forma, centro, orientación y dimensiones</p>
+      <span class="badge">📍 Recuperación diagnóstica</span>
+    </a>
+
+    <!-- Demostración guiada: abre desarrollo.html -->
+    <a href="desarrollo.html" class="card">
+      <div class="card-icon">☀️📐</div>
+      <h3>Misión 2: Localizar el Sol</h3>
+      <p>Calcula la distancia focal y ubica el Sol</p>
+      <span class="badge">🚀 Desarrollo guiado</span>
+    </a>
+
+    <!-- Desafío de memoria: ahora abre cierre.html -->
+    <a href="cierre.html" class="card">
+      <div class="card-icon">🛰️🔓</div>
+      <h3>Misión 3: Activar el sistema</h3>
+      <p>Verifica, calcula, localiza y activa la órbita</p>
+      <span class="badge">🏆 Evaluación gamificada</span>
+    </a>
+  </div>
+
+  <footer>
+    <strong>Desarrollado por Miguel Ubiera</strong><br>
+    Clase diseñada para el Taller de Secuencias Didácticas Interactivas
+  </footer>
+</div>
+
+</body>
+</html>
