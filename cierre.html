@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -370,6 +371,24 @@
   }
   function confettiFromEl(el){ const r=el.getBoundingClientRect(), sr=stage.getBoundingClientRect(); confettiBurst(r.left-sr.left+r.width/2, r.top-sr.top+r.height/2); }
   function showFeedback(container,type,html){ const f=container.querySelector('.feedback'); f.className='feedback '+type+' show'; f.innerHTML=html; }
+
+  /* ---------- Sonido de conteo: bip corto generado con Web Audio, sin dependencias externas ---------- */
+  let audioCtx=null;
+  function beep(freq=880, dur=0.09){
+    try{
+      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.state==='suspended') audioCtx.resume();
+      const osc=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      osc.type='sine';
+      osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.16, audioCtx.currentTime+0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime+dur+0.02);
+    }catch(e){ /* audio no disponible: continuamos sin sonido */ }
+  }
   function bigConfetti(){ confettiBurst(stage.clientWidth/2, 120); setTimeout(()=>confettiBurst(stage.clientWidth*0.3,140),150); setTimeout(()=>confettiBurst(stage.clientWidth*0.7,140),300); }
 
   function placeItems(container, list, sizeClass){
@@ -415,6 +434,7 @@
       setTimeout(()=>{
         it.classList.add('lit');
         it.querySelector('.num-badge').textContent=captured;
+        beep();
         if(captured===finalNumber) totalEl.textContent='Diego dice: '+finalNumber;
       }, n*460);
     });
@@ -519,6 +539,7 @@
       el.addEventListener('click', ()=>{
         if(el.classList.contains('paired') || !selLeft) return;
         pairedCount++;
+        beep();
         el.classList.add('paired'); selLeft.classList.add('paired');
         el.querySelector('.pnum').textContent='#'+pairedCount;
         selLeft.querySelector('.pnum').textContent='#'+pairedCount;
@@ -569,6 +590,7 @@
     const container=$('#fieldMix').closest('.screen');
     const dz=$('.dropzone[data-cat="'+cat+'"]');
     if(el.dataset.cat===cat){
+      beep();
       el.classList.add('gone'); setTimeout(()=>el.remove(),250);
       classified[cat]++;
       dz.querySelector('.dz-count').textContent=classified[cat];
