@@ -82,6 +82,26 @@
   }
   .hud::before{content:"⏱"; font-size:.9rem;}
 
+  /* ---------- Volver a la portada de la secuencia (solo en la pantalla de portada) ---------- */
+  .back-home{
+    position:absolute; top:16px; left:20px; z-index:20;
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(4px);
+    border:1px solid var(--accent-soft);
+    border-radius:999px;
+    padding:6px 14px;
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:.82rem;
+    color:var(--ink-soft);
+    text-decoration:none;
+    box-shadow:0 4px 10px rgba(0,0,0,.06);
+    transition:transform .3s var(--ease), background .3s var(--ease), color .3s var(--ease), box-shadow .3s var(--ease);
+  }
+  .back-home:hover{transform:translateY(-2px); background:rgba(255,255,255,.92); color:var(--accent-dark); box-shadow:0 10px 20px rgba(0,0,0,.1);}
+  .back-home:focus-visible{outline:3px solid var(--accent2); outline-offset:2px;}
+
   /* ---------- Screens ---------- */
   .screens{position:relative; flex:1 1 auto; min-height:0; z-index:1;}
   .screen{
@@ -325,6 +345,7 @@
 
     <!-- PORTADA -->
     <section class="screen portada active" data-screen="portada">
+      <a href="index.html" class="back-home" aria-label="Volver a la portada de la secuencia">← Portada</a>
       <span class="eyebrow">🏫 Misión Almacén · Exploración inicial</span>
       <h1 class="p-title">Primer vistazo al almacén</h1>
       <p class="p-sub">Llegó una donación grande para la escuela: libros, lápices y piezas de geometría, todo apilado y sin clasificar. La directora necesita un inventario exacto. ¿Podrás contar lo que encuentres?</p>
@@ -862,11 +883,13 @@
           ? '❌ En este caso sí lo sabemos: el resultado de Sofía fue más alto, y eso apunta a que contó un lápiz dos veces, no a "cualquiera de las dos cosas".'
           : '❌ En este caso sí lo sabemos: el resultado de Sofía fue más bajo, y eso apunta a que se saltó un lápiz, no a "cualquiera de las dos cosas".';
         showFeedback(container,'error',msg);
+        setTimeout(()=>{ $$('#opts5 .opt').forEach(x=>{x.disabled=false; x.classList.remove('incorrect','selected');}); },1200);
       }else{
         const msg = sofiaDirection==='high'
           ? '❌ El resultado de Sofía fue más alto que el tuyo. Cuando el número sube, es porque algo se contó de más (dos veces).'
           : '❌ El resultado de Sofía fue más bajo que el tuyo. Cuando el número baja, es porque algo se quedó sin contar (se saltó).';
         showFeedback(container,'error',msg);
+        setTimeout(()=>{ $$('#opts5 .opt').forEach(x=>{x.disabled=false; x.classList.remove('incorrect','selected');}); },1200);
       }
       markComplete('5');
     });
@@ -883,6 +906,7 @@
         showFeedback(container,'success','✅ Falso. Contar rápido, sin fijarte en cada objeto, es justo lo que provoca saltos y repeticiones.');
       }else{
         showFeedback(container,'error','❌ En realidad es falso: contar rápido, sin fijarte en cada objeto, provoca errores.');
+        setTimeout(()=>{ $$('#opts6 .opt').forEach(x=>{x.disabled=false; x.classList.remove('incorrect');}); },1200);
       }
       markComplete('6');
     });
@@ -938,6 +962,7 @@
         showFeedback(container,'success','✅ Coincide con lo que encontraste: 10 libros.');
       }else{
         showFeedback(container,'error','Hace un momento encontraste 10 libros. A veces hasta de nuestro propio conteo dudamos.');
+        setTimeout(()=>{ $$('#opts8 .opt').forEach(x=>{x.disabled=false; x.classList.remove('incorrect','selected');}); },1200);
       }
       markComplete('8');
     });
@@ -977,10 +1002,17 @@
   buildHeaps();
   $$('#opts9 .opt').forEach(o=>{
     o.addEventListener('click', ()=>{
-      $$('#opts9 .opt').forEach(x=>x.classList.remove('selected'));
+      $$('#opts9 .opt').forEach(x=>{x.disabled=true; x.classList.remove('selected');});
       o.classList.add('selected');
       const container=o.closest('.screen');
-      showFeedback(container,'neutral','Sorpresa: el Montón A tenía 9 piezas y el Montón B tenía 8. ¿Las adivinaste solo con la vista?');
+      const correct = o.dataset.h==='A';
+      o.classList.add(correct ? 'correct' : 'incorrect');
+      if(correct){
+        showFeedback(container,'success','✅ Así es: el Montón A tenía 9 piezas y el Montón B tenía 8. ¡Lo adivinaste solo con la vista!');
+      }else{
+        showFeedback(container,'error','❌ En realidad el Montón A tenía 9 piezas y el Montón B tenía 8: A era el más grande. A veces el ojo nos engaña.');
+        setTimeout(()=>{ $$('#opts9 .opt').forEach(x=>{x.disabled=false; x.classList.remove('incorrect','selected');}); },1200);
+      }
       markComplete('9');
     });
   });
