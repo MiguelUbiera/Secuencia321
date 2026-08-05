@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El inventario del almacén escolar · Aprendiendo a contar con método</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;600;700;800&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --acento: #b85c3a; --acento-hover: #a34f30; --acento2: #2a5f7a;
+  --fondo: #f7f2ec; --tarjeta: rgba(255,255,255,0.92); --texto: #1a1822; --texto-sec: #3a322a; --borde: rgba(0,0,0,0.06);
+  --s321-ease: cubic-bezier(0.25, 0.46, 0.45, 0.94); --s321-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --s321-dur-screen: 0.7s; --s321-dur-btn: 0.3s; --s321-dur-press: 0.1s;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body { font-family:'Nunito', sans-serif; background: var(--fondo); color: var(--texto); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+h1, h2, h3, .serif { font-family:'Lora', serif; }
+.mono { font-family:'Source Code Pro', monospace; }
+#escenario { position:relative; width:100vw; max-width:1600px; height:100vh; max-height:650px; background: var(--fondo); overflow:hidden; }
+#hud { position:absolute; top:14px; right:20px; z-index:20; display:flex; align-items:center; gap:6px; background: rgba(0,0,0,0.045); backdrop-filter: blur(4px); border: 1px solid #d4a373; border-radius: 20px; padding: 6px 14px; font-size:0.75rem; color:#2d2a24; font-weight:600; }
+.s321-back { position:absolute; top:14px; left:20px; z-index:20; display:inline-flex; align-items:center; gap:6px; background: rgba(255,255,255,0.7); border:1px solid var(--borde); border-radius:20px; padding:6px 14px 6px 12px; font-family:'Nunito',sans-serif; font-weight:700; font-size:0.75rem; color: var(--texto-sec); text-decoration:none; cursor:pointer; }
+.s321-back .glifo { font-size:0.85rem; }
+.s321-screen { position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; padding: 52px 72px 84px; text-align:center; opacity:0; transform:translateX(0); transition: opacity var(--s321-dur-screen) var(--s321-ease), transform var(--s321-dur-screen) var(--s321-ease); }
+.s321-screen.s321-active { display:flex; opacity:1; }
+.s321-screen.s321-exit-next  { display:flex; opacity:0; transform:translateX(-24px); }
+.s321-screen.s321-exit-prev  { display:flex; opacity:0; transform:translateX(24px); }
+.s321-screen.s321-enter-next { display:flex; opacity:0; transform:translateX(24px); }
+.s321-screen.s321-enter-prev { display:flex; opacity:0; transform:translateX(-24px); }
+.eyebrow { font-family:'Source Code Pro', monospace; font-size:0.72rem; font-weight:600; letter-spacing:1.4px; text-transform:uppercase; color:var(--acento2); margin-bottom:10px; }
+.paso-titulo { font-size:1.7rem; font-weight:700; color:var(--texto); margin-bottom:8px; max-width:900px; }
+.paso-instruccion { font-family:'Nunito',sans-serif; font-weight:800; font-size:1.37rem; color:var(--texto); max-width:1010px; margin-bottom:16px; line-height:1.4; }
+.paso-instruccion b, .paso-cuerpo b { font-weight:800; color:var(--acento); }
+.paso-cuerpo { font-family:'Nunito',sans-serif; font-weight:600; font-size:1.19rem; color:var(--texto-sec); max-width:985px; margin-bottom:14px; line-height:1.5; }
+.s321-btn, .s321-card, .s321-clickable { box-shadow: 0 2px 6px rgba(0,0,0,0.12); transition: transform var(--s321-dur-btn) var(--s321-ease-spring), box-shadow var(--s321-dur-btn) ease-out, background-color var(--s321-dur-btn) ease-out, border-color var(--s321-dur-btn) ease-out; will-change: transform; }
+.s321-btn:hover, .s321-card:hover, .s321-clickable:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.18); }
+.s321-btn:active, .s321-card:active, .s321-clickable:active { transform: translateY(0) scale(0.98); transition-duration: var(--s321-dur-press); }
+@media (hover: none) { .s321-btn:hover, .s321-card:hover, .s321-clickable:hover { transform:none; box-shadow:none; } }
+.opciones { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; max-width:1100px; }
+.opcion { background:#fff; border:2px solid #e0d8d0; border-radius:16px; padding:14px 24px; font-family:'Nunito',sans-serif; font-weight:700; font-size:1.10rem; cursor:pointer; color:var(--texto); min-width:150px; }
+.opcion.correcta { border-color:#3a8a5c; background:#eaf5ec; }
+.opcion.incorrecta { border-color:#c0392b; background:#fbeae8; }
+.btn-primario, .btn-secundario { font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem; padding:12px 32px; border-radius:50px; cursor:pointer; border:none; display:inline-flex; align-items:center; gap:10px; }
+.btn-primario { background:var(--acento); color:#fff; }
+.btn-primario:hover { background:var(--acento-hover); }
+.btn-secundario { background:transparent; color:var(--acento); border:2px solid var(--acento); padding:10px 30px; }
+.btn-secundario:hover { background:rgba(184,92,58,0.06); }
+/* display:block, NUNCA flex: con flex cada nodo de texto y cada <b> se
+   vuelve un item independiente y la oración se parte en columnas. */
+.s321-feedback { display:block; text-align:center; padding:12px 22px; border-radius:10px; color:#ffffff; font-weight:700; font-size:1.19rem; line-height:1.45; min-height:1.5em; max-width:985px; opacity:0; transform:translateY(8px); transition: opacity 0.4s var(--s321-ease), transform 0.4s var(--s321-ease); margin-top:6px; }
+.s321-feedback.s321-visible { opacity:1; transform:translateY(0); }
+.s321-feedback-acierto    { background:#3a8a5c; }
+.s321-feedback-error      { background:#c0392b; }
+.s321-feedback-aclaracion { background:#2a5f7a; }
+.s321-feedback b { font-weight:800; color:#fff; text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:2px; }
+.feedback-hueco { min-height:60px; display:flex; align-items:center; justify-content:center; }
+@keyframes s321FadeSlideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.s321-animate-in { animation: s321FadeSlideIn 0.5s var(--s321-ease) both; }
+@media (prefers-reduced-motion: reduce) { .s321-btn, .s321-card, .s321-clickable, .s321-screen, .s321-animate-in, .s321-feedback { transition:none !important; animation:none !important; } }
+#barra-nav { position:absolute; bottom:0; left:0; right:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding: 14px 40px 16px; }
+#barra-nav.oculta { display:none; }
+.nav-izq, .nav-der { display:flex; align-items:center; gap:12px; }
+.nav-centro { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+.progreso-barra { width:280px; height:6px; background:#e8e0d4; border-radius:10px; overflow:hidden; }
+.progreso-relleno { height:100%; background:linear-gradient(90deg, var(--acento), var(--acento2)); border-radius:10px; transition:width 0.4s var(--s321-ease); }
+.progreso-texto { font-family:'Source Code Pro',monospace; font-size:0.72rem; color:var(--texto-sec); }
+.btn-anterior, .btn-reiniciar { background:transparent; border:2px solid #d4a373; color:var(--texto-sec); font-family:'Nunito',sans-serif; font-weight:700; font-size:0.85rem; padding:8px 18px; border-radius:40px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+.btn-anterior:disabled { opacity:0.35; cursor:default; }
+.btn-anterior:disabled:hover { transform:none; box-shadow:none; }
+.btn-siguiente { background:var(--acento); color:#fff; border:none; font-family:'Nunito',sans-serif; font-weight:800; font-size:0.9rem; padding:10px 26px; border-radius:40px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+.btn-siguiente:disabled { background:#e0d8d0; color:#a89a88; cursor:default; }
+.btn-siguiente:disabled:hover { transform:none; box-shadow:none; }
+.credito { position:absolute; bottom:2px; left:0; right:0; text-align:center; font-size:0.62rem; color:#b0a89c; z-index:10; }
+
+/* Tres lenguajes visuales DISTINTOS para no repetir la misma franja azul
+   dos veces seguidas en la misma pantalla (ver estructura.md §8):
+     · .pregunta-recap  → lo que viene arrastrado de la etapa anterior:
+                          tarjeta clara con pestaña lateral gruesa.
+     · .regla-card      → el contenido estrella del archivo: relleno sólido
+                          TERRACOTA (no azul, para no confundirse con una
+                          barra de feedback de aclaración).
+     · .s321-feedback   → la barra de retroalimentación propiamente dicha.
+   Ninguna usa cursiva: son contenido de lectura principal. */
+.recap-tab, .regla-tab {
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:'Source Code Pro',monospace; font-weight:700; font-size:0.68rem;
+  letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;
+}
+.recap-tab { color:var(--acento2); }
+.regla-tab { color:var(--acento); }
+
+.pregunta-recap {
+  background:#fff; border:2px solid #e0d8d0; border-left:8px solid var(--acento2);
+  border-radius:6px 16px 16px 6px;
+  padding:20px 28px; max-width:900px; margin-bottom:16px; text-align:left;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+}
+.pregunta-recap p { font-family:'Lora',serif; font-weight:700; font-size:1.28rem; color:var(--texto); line-height:1.45; }
+
+.regla-card {
+  background: var(--acento); border-radius:18px;
+  padding:24px 34px; max-width:900px; margin-bottom:16px;
+  box-shadow: 0 6px 18px rgba(184,92,58,0.3);
+}
+.regla-card p { font-family:'Lora',serif; font-weight:700; font-size:1.32rem; color:#ffffff; line-height:1.4; }
+
+.mentor-box { background:#fff; border:2px solid #e0d8d0; border-radius:18px; padding:18px 26px; margin-bottom:14px; max-width:820px; }
+.mentor-box .quote { font-family:'Lora',serif; font-size:1.16rem; color:var(--texto); font-weight:700; }
+
+.comparacion { display:flex; gap:24px; justify-content:center; margin-bottom:6px; }
+.conteo-card { background:#fff; border:2px solid #e0d8d0; border-radius:18px; padding:18px 22px; width:270px; cursor:pointer; }
+.conteo-card .titulo-conteo { font-weight:800; margin-bottom:10px; }
+.fila-objetos { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+.objeto-num { width:34px; height:34px; border-radius:8px; background:#f3ede4; border:1px solid #e0d8d0; display:flex; align-items:center; justify-content:center; font-family:'Source Code Pro',monospace; font-weight:700; font-size:0.85rem; color:var(--acento2); }
+.objeto-num.vacio { background:transparent; border-style:dashed; color:#c8bcae; }
+.conteo-card .total-dicho { margin-top:10px; font-weight:700; font-family:'Source Code Pro',monospace; }
+
+.zonas-conteo { display:flex; gap:40px; justify-content:center; margin-bottom:8px; }
+.zona { min-width:230px; }
+.zona-titulo { font-weight:800; font-size:0.9rem; margin-bottom:8px; color:var(--texto-sec); }
+.zona-caja { min-height:130px; background:#fff; border:2px dashed #e0d8d0; border-radius:16px; padding:10px; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; justify-content:center; }
+.zona-caja.destino { border-style:solid; border-color:var(--acento2); background:#f0f6f8; }
+.lapiz-mov { width:40px; height:40px; border-radius:10px; background:#fff; border:2px solid #e0d8d0; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.1rem; position:relative; }
+.lapiz-mov .num-orden { position:absolute; top:-8px; right:-8px; background:var(--acento2); color:#fff; border-radius:50%; width:18px; height:18px; font-size:0.62rem; display:flex; align-items:center; justify-content:center; font-family:'Source Code Pro',monospace; }
+
+.registro-tabla { background:#fff; border:2px solid #e0d8d0; border-radius:16px; padding:18px 26px; max-width:460px; margin-bottom:12px; }
+.registro-fila { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:6px 0; border-bottom:1px solid #f0e8e0; font-weight:700; font-size:1.05rem; }
+.registro-fila:last-child { border-bottom:none; }
+.registro-fila input { width:64px; text-align:center; font-family:'Source Code Pro',monospace; font-weight:700; font-size:1.05rem; border:2px solid #e0d8d0; border-radius:8px; padding:5px; }
+
+.geo-grid { display:flex; gap:14px; justify-content:center; margin-bottom:8px; }
+.geo-grid .geo-ico { font-size:2rem; }
+
+.metodo-lista { display:flex; flex-direction:column; gap:8px; max-width:520px; width:100%; margin:2px 0 16px; text-align:left; }
+.metodo-paso { display:flex; align-items:center; gap:12px; background:#fff; border:2px solid #e0d8d0; border-radius:12px; padding:9px 16px; font-family:'Nunito',sans-serif; font-weight:700; font-size:0.98rem; color:var(--texto); }
+.metodo-num { width:24px; height:24px; border-radius:50%; background:#3a8a5c; color:#fff; font-family:'Source Code Pro',monospace; font-weight:700; font-size:0.74rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+/* ============ Puntos de contacto con imprimible.pdf ============ */
+.hoja-imprimible-tab { display:inline-flex; align-items:center; gap:6px; background:var(--acento2); color:#fff; font-family:'Source Code Pro',monospace; font-weight:700; font-size:0.7rem; letter-spacing:0.6px; text-transform:uppercase; padding:6px 14px; border-radius:20px 20px 0 0; margin-bottom:-2px; position:relative; z-index:1; }
+.hoja-imprimible { background:#fdfbf8; border:2px solid #e0d8d0; border-radius:4px 16px 16px 16px; padding:20px 28px; max-width:560px; width:100%; box-shadow:0 4px 14px rgba(0,0,0,0.08); margin-bottom:14px; }
+.hoja-imprimible-linea { font-family:'Nunito',sans-serif; font-weight:700; font-size:1.02rem; color:var(--texto); text-align:left; margin-bottom:6px; }
+.hoja-imprimible-linea:last-child { margin-bottom:0; }
+
+/* ============ Producción escrita ============ */
+.produccion-textarea { font-family:'Nunito',sans-serif; font-size:1.1rem; font-weight:600; color:var(--texto); padding:14px 18px; border-radius:14px; border:2px solid #e0d8d0; width:100%; max-width:660px; min-height:88px; resize:vertical; background:#fff; margin-bottom:10px; line-height:1.4; }
+.produccion-textarea:focus { outline:none; border-color:var(--acento2); }
+.produccion-contador { font-family:'Source Code Pro',monospace; font-size:0.72rem; color:var(--texto-sec); margin-bottom:12px; }
+</style>
+</head>
+<body>
+<div id="escenario">
+  <div id="hud"><span style="font-size:0.85rem;">⏱️</span><span id="cronometro" class="mono">00:00</span></div>
+
+  <div class="s321-screen s321-active" data-screen="portada">
+    <a href="index.html" class="s321-back s321-clickable" id="btnPortadaBack"><span class="glifo">←</span>Portada</a>
+    <div class="eyebrow s321-animate-in">Construcción guiada</div>
+    <h1 class="paso-titulo s321-animate-in" style="font-size:2.1rem;">Aprendiendo a contar con método</h1>
+    <p class="paso-cuerpo s321-animate-in" style="max-width:1150px;">El almacén sigue esperando su inventario. Ahora sí vamos a resolver la pregunta que dejamos pendiente.</p>
+    <button class="btn-primario s321-btn s321-animate-in" id="btnComenzar">📏 Comenzar</button>
+  </div>
+
+  <!-- ===== PASO 1: recap de la pregunta pendiente ===== -->
+  <div class="s321-screen" data-screen="1">
+    <div class="eyebrow s321-animate-in">Paso 1 de 11</div>
+    <div class="pregunta-recap s321-animate-in">
+      <div class="recap-tab">📌 Viene de la etapa anterior</div>
+      <p>"¿Qué método podemos usar para contar sin saltarnos ni repetir ningún objeto?"</p>
+    </div>
+    <div class="feedback-hueco"><div class="s321-feedback s321-feedback-aclaracion s321-visible" id="fb1">Hoy vamos a construir ese método, paso a paso — y a dejarlo por escrito.</div></div>
+  </div>
+
+  <!-- ===== PASO 2 (NUEVO): espacio narrativo propio del desarrollo ===== -->
+  <div class="s321-screen" data-screen="2">
+    <div class="eyebrow s321-animate-in">Paso 2 de 11</div>
+    <div class="mentor-box s321-animate-in"><span style="margin-bottom:6px;display:block;font-size:1.4rem;">🧑‍🏫</span><p class="quote">"Yo llevo veinte años a cargo de este almacén. Les voy a enseñar el método que nunca falla — y ustedes lo van a dejar anotado, para que el próximo equipo no tenga que empezar de cero." — Profe Andrés</p></div>
+    <p class="paso-instruccion s321-animate-in">El profe Andrés, encargado del almacén, se ofrece a guiarlos. Hoy no solo van a contar: también van a <b>escribir</b> lo que aprendan en su hoja imprimible, para dejar un registro real.</p>
+    <div class="feedback-hueco"><div class="s321-feedback s321-feedback-aclaracion" id="fb2">Toca "Siguiente" para empezar con el profe Andrés.</div></div>
+  </div>
+
+  <!-- ===== PASO 3: regla de oro ===== -->
+  <div class="s321-screen" data-screen="3">
+    <div class="eyebrow s321-animate-in">Paso 3 de 11</div>
+    <p class="paso-instruccion s321-animate-in">Esta es la regla de oro para contar sin errores:</p>
+    <div class="regla-card s321-animate-in">
+      <div class="regla-tab" style="color:#ffe4d8;">⭐ Regla de oro</div>
+      <p>"A cada objeto, un número y solo uno, en orden."</p>
+    </div>
+    <div class="feedback-hueco"><div class="s321-feedback s321-feedback-aclaracion s321-visible" id="fb3">Eso se llama <b>correspondencia uno a uno</b> — la base de todo conteo confiable.</div></div>
+  </div>
+
+  <!-- ===== PASO 4 (NUEVO): primer contacto con la hoja imprimible ===== -->
+  <div class="s321-screen" data-screen="4">
+    <div class="eyebrow s321-animate-in">Paso 4 de 11</div>
+    <p class="paso-instruccion s321-animate-in">Antes de seguir en pantalla: busquen su hoja imprimible.</p>
+    <div>
+      <div class="hoja-imprimible-tab s321-animate-in">🖨️ En tu hoja imprimible</div>
+      <div class="hoja-imprimible s321-animate-in">
+        <div class="hoja-imprimible-linea">📋 Encierren, con lápiz, la frase de la regla de oro que acaban de leer en pantalla.</div>
+        <div class="hoja-imprimible-linea">✏️ Van a volver a esta misma hoja varias veces hoy — no la guarden todavía.</div>
+      </div>
+    </div>
+    <button class="btn-primario s321-btn s321-animate-in" id="btnHecho4">✓ Ya lo encerré en mi hoja</button>
+    <div class="feedback-hueco"><div class="s321-feedback" id="fb4"></div></div>
+  </div>
+
+  <!-- ===== PASO 5: comparación de conteos ===== -->
+  <div class="s321-screen" data-screen="5">
+    <div class="eyebrow s321-animate-in">Paso 5 de 11</div>
+    <p class="paso-instruccion s321-animate-in">Aquí hay dos formas de contar los mismos 5 objetos. ¿Cuál está bien hecha?</p>
+    <div class="comparacion s321-animate-in" id="op5">
+      <div class="conteo-card s321-clickable" data-i="0">
+        <div class="titulo-conteo">Conteo A</div>
+        <div class="fila-objetos">
+          <div class="objeto-num">1</div><div class="objeto-num">2</div><div class="objeto-num">3</div><div class="objeto-num">4</div><div class="objeto-num">5</div>
+        </div>
+        <div class="total-dicho">"Conté 5"</div>
+      </div>
+      <div class="conteo-card s321-clickable" data-i="1">
+        <div class="titulo-conteo">Conteo B</div>
+        <div class="fila-objetos">
+          <div class="objeto-num">1</div><div class="objeto-num">2</div><div class="objeto-num vacio">·</div><div class="objeto-num">3</div><div class="objeto-num">4</div>
+        </div>
+        <div class="total-dicho">"Conté 4"</div>
+      </div>
+    </div>
+    <div class="feedback-hueco"><div class="s321-feedback" id="fb5"></div></div>
+  </div>
+
+  <!-- ===== PASO 6: conteo guiado ===== -->
+  <div class="s321-screen" data-screen="6">
+    <div class="eyebrow s321-animate-in">Paso 6 de 11</div>
+    <p class="paso-instruccion s321-animate-in">Recontemos juntos la caja de lápices: toca cada uno y muévelo a "Ya contados".</p>
+    <div class="zonas-conteo s321-animate-in">
+      <div class="zona"><div class="zona-titulo">Por contar</div><div class="zona-caja" id="zonaOrigen"></div></div>
+      <div class="zona"><div class="zona-titulo">Ya contados</div><div class="zona-caja destino" id="zonaDestino"></div></div>
+    </div>
+    <div class="feedback-hueco"><div class="s321-feedback s321-feedback-aclaracion" id="fb6">Toca en orden, uno a la vez.</div></div>
+  </div>
+
+  <!-- ===== PASO 7 (NUEVO): producción escrita #1 + registro impreso ===== -->
+  <div class="s321-screen" data-screen="7">
+    <div class="eyebrow s321-animate-in">Paso 7 de 11</div>
+    <p class="paso-instruccion s321-animate-in">En tus palabras: ¿cómo supiste que ya no te faltaba ni sobraba ningún lápiz por contar?</p>
+    <textarea class="produccion-textarea s321-animate-in" id="textoP7" placeholder="Escribe al menos una oración explicando cómo lo supiste..."></textarea>
+    <div class="produccion-contador s321-animate-in" id="contadorP7">0 caracteres — escribe al menos 15</div>
+    <button class="btn-primario s321-btn s321-animate-in" id="btnGuardar7">✓ Guardar en mi registro</button>
+    <div class="feedback-hueco"><div class="s321-feedback" id="fb7"></div></div>
+  </div>
+
+  <!-- ===== PASO 8: detectar el error ===== -->
+  <div class="s321-screen" data-screen="8">
+    <div class="eyebrow s321-animate-in">Paso 8 de 11</div>
+    <p class="paso-cuerpo s321-animate-in">Alguien contó las figuras de geometría y dijo que hay 5. Pero en la caja solo hay 4 figuras.</p>
+    <div class="geo-grid s321-animate-in"><span class="geo-ico">🔺</span><span class="geo-ico">🔷</span><span class="geo-ico">📏</span><span class="geo-ico">⬛</span></div>
+    <p class="paso-instruccion s321-animate-in">¿Qué pudo haber pasado?</p>
+    <div class="opciones s321-animate-in" id="op8">
+      <button class="opcion s321-clickable" data-i="0">Contó una figura dos veces</button>
+      <button class="opcion s321-clickable" data-i="1">Se le olvidó contar una figura</button>
+      <button class="opcion s321-clickable" data-i="2">Contó bien, hay 5</button>
+    </div>
+    <div class="feedback-hueco"><div class="s321-feedback" id="fb8"></div></div>
+  </div>
+
+  <!-- ===== PASO 9: cardinalidad ===== -->
+  <div class="s321-screen" data-screen="9">
+    <div class="eyebrow s321-animate-in">Paso 9 de 11</div>
+    <p class="paso-instruccion s321-animate-in">Si contaste hasta 8 al contar los lápices, ¿cuál es el total de lápices?</p>
+    <div class="opciones s321-animate-in" id="op9">
+      <button class="opcion s321-clickable" data-i="0">1</button>
+      <button class="opcion s321-clickable" data-i="1">7</button>
+      <button class="opcion s321-clickable" data-i="2">8</button>
+    </div>
+    <div class="feedback-hueco"><div class="s321-feedback" id="fb9"></div></div>
+  </div>
+
+  <!-- ===== PASO 10 (NUEVO): producción escrita #2 — propuesta del equipo ===== -->
+  <div class="s321-screen" data-screen="10">
+    <div class="eyebrow s321-animate-in">Paso 10 de 11</div>
+    <p class="paso-instruccion s321-animate-in">Escriban la propuesta de su equipo: ¿qué regla debería seguir el almacén de ahora en adelante para no volver a equivocarse?</p>
+    <div>
+      <div class="hoja-imprimible-tab s321-animate-in">🖨️ En tu hoja imprimible</div>
+      <div class="hoja-imprimible s321-animate-in">
+        <div class="hoja-imprimible-linea">📝 Escriban su propuesta aquí en pantalla y también en el espacio "Mi propuesta" de la hoja imprimible.</div>
+        <div class="hoja-imprimible-linea">✅ Una buena propuesta usa la regla de oro del Paso 3: un objeto, un número, en orden.</div>
+      </div>
+    </div>
+    <textarea class="produccion-textarea s321-animate-in" id="textoP10" placeholder="Ejemplo: proponemos que cada vez que llegue una caja nueva..."></textarea>
+    <div class="produccion-contador s321-animate-in" id="contadorP10">0 caracteres — escribe al menos 20</div>
+    <button class="btn-primario s321-btn s321-animate-in" id="btnGuardar10">✓ Guardar propuesta</button>
+    <div class="feedback-hueco"><div class="s321-feedback" id="fb10"></div></div>
+  </div>
+
+  <!-- ===== PASO 11: registro final de las 3 cajas ===== -->
+  <div class="s321-screen" data-screen="11">
+    <div class="eyebrow s321-animate-in">Paso 11 de 11</div>
+    <p class="paso-instruccion s321-animate-in">Apliquemos el método a las tres cajas. Completa el registro con los totales correctos.</p>
+    <div>
+      <div class="hoja-imprimible-tab s321-animate-in">🖨️ En tu hoja imprimible</div>
+      <div class="hoja-imprimible s321-animate-in" style="max-width:460px;">
+        <div class="hoja-imprimible-linea">📋 Este es el mismo registro de "Mi informe final" que ya empezaron a llenar en su hoja imprimible — complétenlo también aquí.</div>
+      </div>
+    </div>
+    <div class="registro-tabla s321-animate-in">
+      <div class="registro-fila"><span>📚 Libros</span><input type="number" id="rLibros" placeholder="?"></div>
+      <div class="registro-fila"><span>✏️ Lápices</span><input type="number" id="rLapices" placeholder="?"></div>
+      <div class="registro-fila"><span>📐 Geometría</span><input type="number" id="rGeometria" placeholder="?"></div>
+    </div>
+    <button class="btn-primario s321-btn s321-animate-in" id="btnConfirmar11">📋 Confirmar registro</button>
+    <div class="feedback-hueco"><div class="s321-feedback" id="fb11"></div></div>
+  </div>
+
+  <div class="s321-screen" data-screen="cierre">
+    <div class="eyebrow s321-animate-in" style="color:#3a8a5c;">✅ Método aprendido</div>
+    <h2 class="paso-titulo s321-animate-in">Ya tienen un método confiable</h2>
+    <p class="paso-cuerpo s321-animate-in" style="margin-bottom:10px;">Repasemos los 4 pasos del método, en orden:</p>
+    <div class="metodo-lista s321-animate-in">
+      <div class="metodo-paso"><span class="metodo-num">1</span>Toca cada objeto una sola vez.</div>
+      <div class="metodo-paso"><span class="metodo-num">2</span>Di el número en voz alta.</div>
+      <div class="metodo-paso"><span class="metodo-num">3</span>Mueve el objeto a "ya contados".</div>
+      <div class="metodo-paso"><span class="metodo-num">4</span>El último número es el total.</div>
+    </div>
+    <p class="paso-cuerpo s321-animate-in" style="max-width:900px;">Su hoja imprimible ya tiene la regla de oro encerrada, su explicación escrita y su propuesta de equipo — llévensela, es su registro del método.</p>
+    <div class="opciones s321-animate-in" style="margin-bottom:16px;">
+      <a href="index.html" class="btn-secundario s321-btn" id="btnVolverIndex" style="text-decoration:none;">🏠 Volver a la secuencia</a>
+      <a href="cierre.html" class="btn-primario s321-btn" id="btnContinuar" style="text-decoration:none;">Continuar a la evaluación final →</a>
+    </div>
+  </div>
+
+  <div id="barra-nav">
+    <div class="nav-izq"><button class="btn-anterior s321-clickable" id="btnAnterior">←Anterior</button></div>
+    <div class="nav-centro">
+      <div class="progreso-barra"><div class="progreso-relleno" id="progresoRelleno" style="width:0%;"></div></div>
+      <div class="progreso-texto" id="progresoTexto">Paso 0 de 11</div>
+    </div>
+    <div class="nav-der">
+      <button class="btn-reiniciar s321-clickable" id="btnReiniciarNav">↺Reiniciar</button>
+      <button class="btn-siguiente s321-btn" id="btnSiguiente">Siguiente→</button>
+    </div>
+  </div>
+  <div class="credito">Secuencia321® · Miguel Ubiera</div>
+</div>
+
+<script>
+const S321_TRANS_CLASSES = ['s321-exit-next', 's321-exit-prev', 's321-enter-next', 's321-enter-prev'];
+const S321_EXIT_CLEANUP_MS = 750; // > 0.7s (--s321-dur-screen): margen de seguridad
+function s321GoToScreen(fromEl, toEl, direction) {
+  if (!toEl || fromEl === toEl) return;
+  const exitClass = direction === 'next' ? 's321-exit-next' : 's321-exit-prev';
+  const enterClass = direction === 'next' ? 's321-enter-next' : 's321-enter-prev';
+  if (fromEl) fromEl._s321Token = (fromEl._s321Token || 0) + 1;
+  toEl._s321Token = (toEl._s321Token || 0) + 1;
+  const fromToken = fromEl ? fromEl._s321Token : null;
+  const toToken = toEl._s321Token;
+  if (fromEl) {
+    fromEl.classList.remove('s321-active', ...S321_TRANS_CLASSES);
+    fromEl.classList.add(exitClass);
+  }
+  toEl.classList.remove(...S321_TRANS_CLASSES);
+  toEl.style.display = '';
+  toEl.classList.add(enterClass);
+  void toEl.offsetWidth;
+  requestAnimationFrame(() => {
+    if (toEl._s321Token !== toToken) return;
+    toEl.classList.remove(enterClass);
+    toEl.classList.add('s321-active');
+    s321PlayEntranceAnimation(toEl);
+  });
+  // Limpieza por temporizador, no por 'transitionend': el transitionend de
+  // un botón/tarjeta hijo con su propia transición de :active burbujea
+  // hasta aquí y puede llegar antes que el de la propia pantalla, dejándola
+  // atascada con la clase de salida (ver recursos/transiciones.js).
+  if (fromEl) {
+    setTimeout(() => {
+      if (fromEl._s321Token !== fromToken) return;
+      fromEl.classList.remove(exitClass);
+      fromEl.style.display = 'none';
+    }, S321_EXIT_CLEANUP_MS);
+  }
+}
+function s321PlayEntranceAnimation(screenEl) {
+  const items = screenEl.querySelectorAll('.s321-animate-in');
+  items.forEach((el, i) => {
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animationDelay = `${i * 0.15}s`;
+    el.style.animation = '';
+  });
+}
+function s321Restart(screens) {
+  const current = screens.find((s) => s.classList.contains('s321-active'));
+  const first = screens[0];
+  if (current === first) { s321PlayEntranceAnimation(first); return; }
+  s321GoToScreen(current, first, 'prev');
+}
+
+const s321Sonido = (() => {
+  let ctx;
+  function obtenerContexto() { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); return ctx; }
+  function tono(frecuencia, duracion, { tipo = 'sine', volumen = 0.12, retardo = 0 } = {}) {
+    const ac = obtenerContexto();
+    const osc = ac.createOscillator(); const ganancia = ac.createGain();
+    osc.type = tipo;
+    osc.frequency.setValueAtTime(frecuencia, ac.currentTime + retardo);
+    ganancia.gain.setValueAtTime(0.0001, ac.currentTime + retardo);
+    ganancia.gain.exponentialRampToValueAtTime(volumen, ac.currentTime + retardo + 0.015);
+    ganancia.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + retardo + duracion);
+    osc.connect(ganancia).connect(ac.destination);
+    osc.start(ac.currentTime + retardo);
+    osc.stop(ac.currentTime + retardo + duracion + 0.05);
+  }
+  return {
+    click() { tono(680, 0.07, { tipo: 'sine', volumen: 0.1 }); },
+    hover() { tono(880, 0.04, { tipo: 'sine', volumen: 0.04 }); },
+    correcto() { tono(523.25, 0.14, { tipo: 'sine', volumen: 0.13 }); tono(783.99, 0.22, { tipo: 'sine', volumen: 0.13, retardo: 0.1 }); },
+    error() { tono(311.13, 0.16, { tipo: 'sine', volumen: 0.11 }); tono(233.08, 0.24, { tipo: 'sine', volumen: 0.1, retardo: 0.11 }); },
+    transicion() { tono(440, 0.09, { tipo: 'sine', volumen: 0.05 }); },
+  };
+})();
+
+function s321Confeti(opciones = {}) {
+  const reducirMovimiento = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reducirMovimiento) return;
+  const colores = opciones.colores || ['#b85c3a', '#2a5f7a', '#f2c94c', '#3a8a5c', '#ffffff', '#e8def8'];
+  const cantidad = opciones.cantidad || 80;
+  const duracionBase = opciones.duracionMs || 2000;
+  let origenX = window.innerWidth / 2; let origenY = window.innerHeight * 0.22;
+  if (opciones.origenEl && opciones.origenEl.getBoundingClientRect) {
+    const r = opciones.origenEl.getBoundingClientRect(); origenX = r.left + r.width / 2; origenY = r.top;
+  }
+  const contenedor = document.createElement('div');
+  contenedor.setAttribute('aria-hidden', 'true');
+  contenedor.style.cssText = 'position:fixed; inset:0; pointer-events:none; z-index:9999; overflow:visible;';
+  document.body.appendChild(contenedor);
+  for (let i = 0; i < cantidad; i++) {
+    const pieza = document.createElement('span');
+    const esRectangulo = Math.random() > 0.5;
+    const ancho = esRectangulo ? 6 + Math.random() * 5 : 10 + Math.random() * 8;
+    const alto = esRectangulo ? 12 + Math.random() * 8 : ancho;
+    const color = colores[Math.floor(Math.random() * colores.length)];
+    const anguloInicial = Math.random() * 360;
+    const dx = (Math.random() - 0.5) * window.innerWidth * 0.9;
+    const dy = window.innerHeight * (0.65 + Math.random() * 0.55);
+    const rotFinal = anguloInicial + (Math.random() > 0.5 ? 1 : -1) * (540 + Math.random() * 360);
+    const retardo = Math.random() * 250;
+    const duracion = duracionBase + Math.random() * 800;
+    pieza.style.cssText = `position:absolute; left:${origenX}px; top:${origenY}px; width:${ancho}px; height:${alto}px; background:${color}; border-radius:${esRectangulo ? '2px' : '50%'}; opacity:0.95; box-shadow:0 0 2px rgba(0,0,0,0.15); transform:rotate(${anguloInicial}deg); animation:s321CaidaConfeti ${duracion}ms cubic-bezier(0.25,0.46,0.45,0.94) ${retardo}ms forwards;`;
+    pieza.style.setProperty('--s321-dx', dx + 'px');
+    pieza.style.setProperty('--s321-dy', dy + 'px');
+    pieza.style.setProperty('--s321-rot', rotFinal + 'deg');
+    contenedor.appendChild(pieza);
+  }
+  setTimeout(() => contenedor.remove(), duracionBase + 1400);
+}
+if (typeof document !== 'undefined' && !document.getElementById('s321-confeti-keyframes')) {
+  const estiloConfeti = document.createElement('style');
+  estiloConfeti.id = 's321-confeti-keyframes';
+  estiloConfeti.textContent = `@keyframes s321CaidaConfeti { to { transform: translate(var(--s321-dx), var(--s321-dy)) rotate(var(--s321-rot)); opacity: 0; } }`;
+  document.head.appendChild(estiloConfeti);
+}
+
+(function () {
+  "use strict";
+  const screensOrder = ['portada','1','2','3','4','5','6','7','8','9','10','11','cierre'];
+  const screenEls = {};
+  screensOrder.forEach(id => { screenEls[id] = document.querySelector(`[data-screen="${id}"]`); });
+  const numeroPasos = 11;
+  let indiceActual = 0;
+  let pasoCompletado = {};
+
+  /* --- Fortaleza de navegación (ver estructura.md §5) ---------------------
+     pasosInformativos: pasos sin interacción obligatoria. ANTES se marcaban
+     escuchando 'transitionend' sobre la pantalla; si ese evento no llegaba
+     (porque la pantalla ya estaba activa, porque el transitionend de un
+     botón hijo se adelantó, o porque se llegó por "Reiniciar" sin
+     transición), el paso quedaba sin completar y "Siguiente" se quedaba
+     apagado para siempre: el estudiante quedaba encerrado. Ahora se marcan
+     de forma determinista al entrar, sin depender de ningún evento.
+     maxIndiceAlcanzado: el paso más lejano ya alcanzado. Retroceder por
+     debajo de él siempre deja "Siguiente" habilitado. */
+  const pasosInformativos = ['1', '2', '3'];
+  let maxIndiceAlcanzado = 0;
+
+  const btnAnterior = document.getElementById('btnAnterior');
+  const btnSiguiente = document.getElementById('btnSiguiente');
+  const btnReiniciarNav = document.getElementById('btnReiniciarNav');
+  const barraNav = document.getElementById('barra-nav');
+  const progresoRelleno = document.getElementById('progresoRelleno');
+  const progresoTexto = document.getElementById('progresoTexto');
+
+  function idActual() { return screensOrder[indiceActual]; }
+
+  function marcarSiEsInformativo(id) {
+    if (pasosInformativos.indexOf(id) !== -1) pasoCompletado[id] = true;
+  }
+
+  function actualizarNav() {
+    const id = idActual();
+    if (id === 'portada' || id === 'cierre') { barraNav.classList.add('oculta'); return; }
+    barraNav.classList.remove('oculta');
+    // Nunca se bloquea: desde el paso 1, "Anterior" devuelve a la portada,
+    // que es donde vive el botón "← Portada" hacia index.html.
+    btnAnterior.disabled = false;
+    const n = parseInt(id, 10);
+    progresoTexto.textContent = `Paso ${n} de ${numeroPasos}`;
+    progresoRelleno.style.width = `${(n / numeroPasos) * 100}%`;
+    btnSiguiente.disabled = !(pasoCompletado[id] || indiceActual < maxIndiceAlcanzado);
+  }
+
+  function irA(nuevoIndice, direccion) {
+    const fromEl = screenEls[idActual()];
+    indiceActual = nuevoIndice;
+    const toEl = screenEls[idActual()];
+    marcarSiEsInformativo(idActual());
+    if (indiceActual > maxIndiceAlcanzado) maxIndiceAlcanzado = indiceActual;
+    s321GoToScreen(fromEl, toEl, direccion);
+    s321Sonido.transicion();
+    actualizarNav();
+  }
+
+  document.getElementById('btnComenzar').addEventListener('click', () => { s321Sonido.click(); irA(1, 'next'); });
+  document.getElementById('btnPortadaBack').addEventListener('click', () => s321Sonido.click());
+  btnSiguiente.addEventListener('click', () => { if (btnSiguiente.disabled) return; s321Sonido.click(); irA(indiceActual + 1, 'next'); });
+  btnAnterior.addEventListener('click', () => { if (btnAnterior.disabled) return; s321Sonido.click(); irA(indiceActual - 1, 'prev'); });
+  btnReiniciarNav.addEventListener('click', () => {
+    s321Sonido.click();
+    pasoCompletado = {};
+    indiceActual = 1;
+    maxIndiceAlcanzado = 1;
+    screensOrder.forEach(id => { if (id !== '1') { screenEls[id].classList.remove('s321-active'); screenEls[id].style.display='none'; } });
+    screenEls['1'].classList.add('s321-active'); screenEls['1'].style.display='';
+    resetearPasos();
+    marcarSiEsInformativo('1');
+    s321PlayEntranceAnimation(screenEls['1']);
+    actualizarNav();
+  });
+  document.getElementById('btnVolverIndex').addEventListener('click', () => s321Sonido.click());
+  document.getElementById('btnContinuar').addEventListener('click', () => s321Sonido.click());
+
+  function marcarFeedback(el, tipo, mensaje) { el.className = 's321-feedback s321-visible ' + (tipo ? `s321-feedback-${tipo}` : ''); el.innerHTML = mensaje; }
+  function completarPaso(id) { pasoCompletado[id] = true; actualizarNav(); }
+
+  function montarOpcionMultiple(pasoId, contenedorSelector, indiceCorrecta, feedbacks) {
+    const cont = document.getElementById(contenedorSelector);
+    const fb = document.getElementById('fb' + pasoId);
+    const botones = [...cont.querySelectorAll('[data-i]')];
+    botones.forEach(btn => {
+      btn.addEventListener('click', () => {
+        s321Sonido.click();
+        const i = parseInt(btn.dataset.i, 10);
+        if (i === indiceCorrecta) {
+          btn.classList.add('correcta');
+          s321Sonido.correcto();
+          marcarFeedback(fb, 'acierto', feedbacks.acierto);
+          s321Confeti({ origenEl: btn });
+          completarPaso(pasoId);
+        } else {
+          btn.classList.add('incorrecta');
+          s321Sonido.error();
+          marcarFeedback(fb, 'error', feedbacks.error);
+        }
+      });
+    });
+  }
+
+  /* Pasos 1, 2 y 3 son informativos: los completa marcarSiEsInformativo()
+     al entrar, de forma determinista. NO uses 'transitionend' para esto. */
+
+  /* Paso 4: primer contacto con la hoja imprimible */
+  document.getElementById('btnHecho4').addEventListener('click', () => {
+    s321Sonido.click();
+    marcarFeedback(document.getElementById('fb4'), 'acierto', '¡Perfecto! Van a volver a esta hoja varias veces hoy.');
+    s321Confeti({ origenEl: document.getElementById('btnHecho4') });
+    completarPaso('4');
+  });
+
+  /* Paso 5: comparación de conteos */
+  montarOpcionMultiple('5', 'op5', 0, {
+    acierto: 'El Conteo A tocó cada objeto una sola vez, en orden, sin saltar ninguno: por eso llegó a 5, el total correcto.',
+    error: 'Mira con cuidado: en el Conteo B falta un número en la fila — se saltaron un objeto. Intenta de nuevo.'
+  });
+
+  /* Paso 6: conteo guiado con mover a "ya contados" */
+  (function () {
+    const total = 8;
+    const origen = document.getElementById('zonaOrigen');
+    const destino = document.getElementById('zonaDestino');
+    const fb6 = document.getElementById('fb6');
+    let contados = 0;
+    for (let i = 0; i < total; i++) {
+      const d = document.createElement('div');
+      d.className = 'lapiz-mov s321-clickable';
+      d.innerHTML = '✏️';
+      d.addEventListener('click', () => {
+        if (d.dataset.movido) return;
+        s321Sonido.click();
+        contados++;
+        const num = document.createElement('span');
+        num.className = 'num-orden'; num.textContent = contados;
+        d.appendChild(num);
+        d.dataset.movido = '1';
+        destino.appendChild(d);
+        if (contados === total) {
+          marcarFeedback(fb6, 'acierto', '¡8 lápices, cada uno con su número, en orden! El último número, 8, es el total.');
+          s321Sonido.correcto();
+          completarPaso('6');
+        }
+      });
+      origen.appendChild(d);
+    }
+  })();
+
+  /* Paso 7: producción escrita #1 */
+  (function () {
+    const ta = document.getElementById('textoP7');
+    const contador = document.getElementById('contadorP7');
+    const MIN = 15;
+    ta.addEventListener('input', () => {
+      const n = ta.value.trim().length;
+      contador.textContent = n < MIN ? `${n} caracteres — escribe al menos ${MIN}` : `${n} caracteres — ¡listo para guardar!`;
+    });
+    document.getElementById('btnGuardar7').addEventListener('click', () => {
+      s321Sonido.click();
+      if (ta.value.trim().length < MIN) {
+        s321Sonido.error();
+        marcarFeedback(document.getElementById('fb7'), 'error', 'Escribe un poco más — cuéntanos con tus palabras cómo lo supiste.');
+        return;
+      }
+      s321Sonido.correcto();
+      marcarFeedback(document.getElementById('fb7'), 'acierto', '¡Guardado! Anota lo mismo en tu hoja imprimible si todavía no lo has hecho.');
+      s321Confeti({ origenEl: document.getElementById('btnGuardar7') });
+      completarPaso('7');
+    });
+  })();
+
+  /* Paso 8: detectar el error de conteo */
+  montarOpcionMultiple('8', 'op8', 0, {
+    acierto: 'Exacto — contar un objeto dos veces suma de más. Por eso movemos cada objeto a "ya contados": para no volver a tocarlo.',
+    error: 'Piensa: si solo hay 4 figuras y alguien dijo 5, ¿contó de más o de menos? ¿Cómo pudo pasar?'
+  });
+
+  /* Paso 9: cardinalidad */
+  montarOpcionMultiple('9', 'op9', 2, {
+    acierto: '¡Correcto! El <b>último número</b> que dices al contar es el total — eso se llama cardinalidad.',
+    error: 'El total no es el primer número ni un número cualquiera — es el último que dijiste al contar. Inténtalo de nuevo.'
+  });
+
+  /* Paso 10: producción escrita #2 — propuesta del equipo */
+  (function () {
+    const ta = document.getElementById('textoP10');
+    const contador = document.getElementById('contadorP10');
+    const MIN = 20;
+    ta.addEventListener('input', () => {
+      const n = ta.value.trim().length;
+      contador.textContent = n < MIN ? `${n} caracteres — escribe al menos ${MIN}` : `${n} caracteres — ¡lista para guardar!`;
+    });
+    document.getElementById('btnGuardar10').addEventListener('click', () => {
+      s321Sonido.click();
+      if (ta.value.trim().length < MIN) {
+        s321Sonido.error();
+        marcarFeedback(document.getElementById('fb10'), 'error', 'Desarrollen un poco más la propuesta antes de guardarla.');
+        return;
+      }
+      s321Sonido.correcto();
+      marcarFeedback(document.getElementById('fb10'), 'acierto', '¡Propuesta guardada! No olviden copiarla también en su hoja imprimible.');
+      s321Confeti({ origenEl: document.getElementById('btnGuardar10') });
+      completarPaso('10');
+    });
+  })();
+
+  /* Paso 11: registro final de las 3 cajas */
+  document.getElementById('btnConfirmar11').addEventListener('click', () => {
+    s321Sonido.click();
+    const libros = parseInt(document.getElementById('rLibros').value, 10);
+    const lapices = parseInt(document.getElementById('rLapices').value, 10);
+    const geometria = parseInt(document.getElementById('rGeometria').value, 10);
+    const fb11 = document.getElementById('fb11');
+    if (libros === 8 && lapices === 8 && geometria === 4) {
+      s321Sonido.correcto();
+      marcarFeedback(fb11, 'acierto', '¡Registro correcto! Libros: 8 · Lápices: 8 · Geometría: 4. Ahora sí, el inventario es confiable.');
+      s321Confeti();
+      completarPaso('11');
+    } else {
+      s321Sonido.error();
+      marcarFeedback(fb11, 'error', 'Alguno de los totales no coincide con lo que contamos juntos — revisa cada caja e inténtalo de nuevo.');
+    }
+  });
+
+  function resetearPasos() {
+    document.querySelectorAll('.opcion, .conteo-card').forEach(el => el.classList.remove('correcta', 'incorrecta'));
+    document.querySelectorAll('.s321-feedback').forEach(el => {
+      if (el.id!=='fb1' && el.id!=='fb2' && el.id!=='fb3') { el.className = el.className.replace('s321-visible','').trim(); if(el.id!=='fb6') el.textContent=''; }
+    });
+    document.getElementById('zonaOrigen').innerHTML=''; document.getElementById('zonaDestino').innerHTML='';
+    document.getElementById('fb6').textContent = 'Toca en orden, uno a la vez.';
+    document.getElementById('fb6').className = 's321-feedback s321-feedback-aclaracion s321-visible';
+    (function () {
+      const origen = document.getElementById('zonaOrigen');
+      for (let i = 0; i < 8; i++) {
+        const d = document.createElement('div');
+        d.className = 'lapiz-mov s321-clickable';
+        d.innerHTML = '✏️';
+        origen.appendChild(d);
+      }
+    })();
+    document.getElementById('rLibros').value=''; document.getElementById('rLapices').value=''; document.getElementById('rGeometria').value='';
+    document.getElementById('textoP7').value=''; document.getElementById('contadorP7').textContent='0 caracteres — escribe al menos 15';
+    document.getElementById('textoP10').value=''; document.getElementById('contadorP10').textContent='0 caracteres — escribe al menos 20';
+  }
+
+  (function () {
+    let segundos = 0;
+    const el = document.getElementById('cronometro');
+    setInterval(() => {
+      segundos++;
+      const m = String(Math.floor(segundos / 60)).padStart(2, '0');
+      const s = String(segundos % 60).padStart(2, '0');
+      el.textContent = `${m}:${s}`;
+    }, 1000);
+  })();
+
+  s321PlayEntranceAnimation(screenEls['portada']);
+  actualizarNav();
+})();
+</script>
+</body>
+</html>
