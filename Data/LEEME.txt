@@ -1,0 +1,10 @@
+Aquí van las diez ilustraciones que produce img.md, con su nombre exacto:
+
+  portada-taller.png     yamilex-saludo.png     mercedes-pedido.png
+  wilkin-perdido.png     cinta-diez.png         mercedes-libreta.png
+  yamilex-cintas.png     wilkin-entrega.png     diablo-traje.png
+  comparsa-desfile.png
+
+Mientras la carpeta esté vacía, cada pantalla muestra el aviso del archivo
+pendiente y la secuencia funciona igual. Falta también favicon.svg, que va
+junto a los HTML y lo pones tú.
