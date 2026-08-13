@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1259,6 +1260,33 @@ button { font-family: inherit; }
 }
 .s321-libreta-abrir:hover { filter: brightness(1.07); }
 
+/* Desafío 5: las tres mesas que se comparan. Objeto de ejercicio, así que
+   responde al toque y marca su puesto en la fila de despacho. */
+.mesa-op {
+  display: flex; align-items: center; width: 100%;
+  gap: calc(14px * var(--s321-escala));
+  padding: calc(10px * var(--s321-escala)) calc(16px * var(--s321-escala));
+  background: var(--su-base); border: 2px solid var(--pe-claro);
+  border-radius: calc(14px * var(--s321-escala)); cursor: pointer; text-align: left;
+}
+.mesa-op:hover { border-color: var(--te-base); }
+.mesa-op.puesta { border-color: var(--ok); background: var(--ok-velo); }
+.mesa-op-nombre { flex: 0 0 auto; font-weight: 800;
+  font-size: calc(var(--s321-txt-opcion) * var(--s321-escala)); color: var(--tx-titulo);
+  min-width: calc(170px * var(--s321-escala)); }
+.mesa-op-fig { flex: 1; min-width: 0; }
+.mesa-op-fig .mesa { align-items: flex-start; }
+.mesa-op-fig .mesa-cintas { justify-content: flex-start; }
+.mesa-op-fig .mesa-sueltos { justify-content: flex-start; }
+.mesa-op-pos { flex: 0 0 auto; font-family: 'Source Code Pro', monospace; font-weight: 700;
+  font-size: calc(.9rem * var(--s321-escala)); color: var(--ok);
+  min-width: calc(34px * var(--s321-escala)); text-align: right; }
+.orden-chip {
+  font-weight: 700; font-size: calc(.82rem * var(--s321-escala));
+  background: var(--pe-base); color: #fff;
+  padding: calc(6px * var(--s321-escala)) calc(13px * var(--s321-escala));
+  border-radius: 999px; white-space: nowrap;
+}
 .mesa { display: flex; flex-direction: column; align-items: center;
   gap: max(var(--s321-sep-min), calc(var(--s321-sep) * var(--s321-escala))); }
 .mesa-cintas { display: flex; flex-wrap: wrap; justify-content: center;
@@ -1511,8 +1539,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .sonda:hover { border-color: var(--te-base); background: var(--su-realce); }
 .sonda.probada { border-color: var(--pe-claro); background: var(--pe-velo); }
+/* EL RECTÁNGULO CRECE CON SU CONTENIDO. Llevaba `height` fija, y la columna
+   de opciones de la ronda relámpago no cabía: se veían las dos primeras y la
+   tercera cortada por la mitad. Un alto fijo en una zona cuyo contenido lo
+   pinta el JS es la misma trampa de siempre — se dimensiona a ojo antes de
+   saber qué va dentro. Con `min-height` conserva su presencia cuando está
+   vacía (el botón de empezar centrado) y se estira cuando hace falta; el
+   encaje colectivo se ocupa de que el conjunto siga cabiendo. */
 .juego-zona { position: relative; width: min(100%, calc(880px * var(--s321-escala)));
-  height: calc(240px * var(--s321-escala)); margin-inline: auto; }
+  /* 240px era el alto pensado para el tablero solo. La columna de opciones va
+     en posición absoluta —no empuja al contenedor— y con tres opciones apiladas
+     necesita ~360: la tercera caía fuera y se veía cortada por la mitad.
+     `min-height` reserva el alto de la columna, que es el elemento más alto que
+     puede contener, y el encaje colectivo encoge el conjunto si el visor aprieta. */
+  min-height: calc(360px * var(--s321-escala)); margin-inline: auto; }
 .destello {
   position: absolute; display: flex; flex-direction: column; align-items: center;
   gap: calc(8px * var(--s321-escala));
@@ -1670,20 +1710,11 @@ function s321ImgPendiente(img) {
       <div class="s321-lote">
         <!-- Tercera alineación vertical de la actividad (centro · abajo · arriba):
              el modelo se apoya abajo, contra la mesa que se está leyendo. -->
-        <div class="s321-ar-duo s321-ar-abajo">
-          <div class="s321-texto s321-columna" style="gap:calc(12px*var(--s321-escala))">
-            <div class="s321-insignia s321-animate-in" style="align-self:flex-start">DESAFÍO 5 DE 10 · EL MODELO</div>
-            <p class="s321-instruccion s321-animate-in">Mira la mesa de la capa nueva. Toca una ficha y llévala a <span class="s321-clave">su casilla</span>.</p>
-            <div id="c5-mesa"></div>
-          </div>
-          <div class="s321-figura s321-columna" style="gap:calc(12px*var(--s321-escala))">
-            <div class="modelo-tabla" id="c5-modelo">
-              <div class="modelo-fila"><span>Cintas de 10</span><button class="hueco-num" data-celda="c" aria-label="Casilla de cintas">?</button></div>
-              <div class="modelo-fila"><span>Sueltos</span><button class="hueco-num" data-celda="s" aria-label="Casilla de sueltos">?</button></div>
-              <div class="modelo-fila"><span>Total</span><button class="hueco-num" data-celda="t" aria-label="Casilla del total">?</button></div>
-            </div>
-            <div class="s321-fila" id="c5-fichas"></div>
-          </div>
+        <div class="s321-ar-columna">
+          <div class="s321-insignia s321-animate-in">DESAFÍO 5 DE 10 · EL DESPACHO POR TAMAÑO</div>
+          <p class="s321-instruccion s321-animate-in" style="text-align:center">Tres mesas esperan el camión. Tócalas <span class="s321-clave">de la que menos tiene a la que más</span> — mira las cintas, no cuentes de uno en uno.</p>
+          <div class="s321-columna" id="c5-mesas" style="width:100%;gap:calc(10px*var(--s321-escala))"></div>
+          <div class="s321-fila" id="c5-orden" style="justify-content:center;min-height:calc(46px*var(--s321-escala))"></div>
         </div>
       </div>
       <div class="s321-feedback" id="fb-c5" aria-live="polite"></div>
@@ -3160,55 +3191,69 @@ function s321Recolocar() {
   }
 
   /* ---------- Desafío 5 · el modelo ---------- */
-  var C5_FICHAS = [4, 3, 43, 7, 34];
-  var C5_OK = { c: 4, s: 3, t: 43 };
-  var c5Sel = null, c5Puestas = 0;
+  /* ---------- Desafío 5 · despachar por tamaño ----------
+     SUSTITUYE al antiguo «toca una ficha y llévala a su casilla», que era la
+     MISMA mecánica y el MISMO objeto que el paso 14 de inicio.html: mesa,
+     fichas numéricas y casillas Cintas/Sueltos/Total. Cambiar los números no
+     lo convertía en otro ejercicio (SKILL.md, regla anti-repetición).
+
+     Aquí la familia es otra —decidir y ordenar, no componer— y el objeto
+     también: tres mesas que se comparan entre sí. Y evalúa lo que el cierre
+     debe evaluar: si el estudiante YA LEE la cantidad por sus grupos, sin
+     contar de uno en uno. */
+  var C5_MESAS = [
+    { id: 'a', cintas: 2, sueltos: 6, nombre: 'Mesa del portón' },
+    { id: 'b', cintas: 4, sueltos: 1, nombre: 'Mesa del taller' },
+    { id: 'c', cintas: 3, sueltos: 8, nombre: 'Mesa del patio' }
+  ];
+  var c5Orden = [];
+  function c5Total(m) { return m.cintas * 10 + m.sueltos; }
   function initC5() {
-    c5Sel = null; c5Puestas = 0;
-    document.getElementById('c5-mesa').innerHTML = s321Mesa(4, 3);
-    s321MesaContable(document.getElementById('c5-mesa'), 'fb-c5', 4, 3);
-    s321Recolocar();
-    document.querySelectorAll('#c5-modelo .hueco-num').forEach(function (h) {
-      h.textContent = '?'; h.classList.remove('ok', 'lleno');
-    });
-    var fichas = document.getElementById('c5-fichas');
-    fichas.innerHTML = C5_FICHAS.map(function (n) {
-      return '<button class="ficha s321-clickable" data-n="' + n + '">' + n + '</button>';
+    c5Orden = [];
+    var cont = document.getElementById('c5-mesas');
+    cont.innerHTML = C5_MESAS.map(function (m) {
+      return '<button class="mesa-op s321-card s321-clickable" data-m="' + m.id + '">' +
+             '<span class="mesa-op-nombre">' + m.nombre + '</span>' +
+             '<span class="mesa-op-fig">' + s321Mesa(m.cintas, m.sueltos) + '</span>' +
+             '<span class="mesa-op-pos" aria-hidden="true"></span></button>';
     }).join('');
-    fichas.querySelectorAll('.ficha').forEach(function (f) {
-      f.onclick = function () {
-        fichas.querySelectorAll('.ficha').forEach(function (x) { x.classList.remove('sel'); });
-        f.classList.add('sel'); c5Sel = f;
-      };
-    });
-    document.querySelectorAll('#c5-modelo .hueco-num').forEach(function (h) {
-      h.onclick = function () {
-        if (h.classList.contains('ok')) return;
-        if (!c5Sel) {
-          s321Feedback('fb-c5', 'aclaracion', 'Primero toca una ficha; después, su casilla.');
-          return;
-        }
-        var n = parseInt(c5Sel.dataset.n, 10);
-        if (C5_OK[h.dataset.celda] === n) {
-          h.textContent = n; h.classList.add('ok', 'lleno');
-          c5Sel.classList.add('usada'); c5Sel.classList.remove('sel'); c5Sel = null;
-          c5Puestas++;
-          if (c5Puestas === 3) {
-            s321Feedback('fb-c5', 'acierto', '<b>4 cintas y 3 sueltos: 43.</b> La capa nueva ya tiene su cuenta.');
-            s321Completar('c5', { origenEl: h });
+    document.getElementById('c5-orden').innerHTML = '';
+    cont.querySelectorAll('.mesa-op').forEach(function (b) {
+      b.onclick = function () {
+        if (s321PasoCompletado['c5'] || b.classList.contains('puesta')) return;
+        var m = C5_MESAS.filter(function (x) { return x.id === b.dataset.m; })[0];
+        c5Orden.push(m);
+        b.classList.add('puesta');
+        b.querySelector('.mesa-op-pos').textContent = c5Orden.length + '.º';
+
+        var chip = document.createElement('span');
+        chip.className = 'orden-chip';
+        chip.textContent = m.nombre;
+        document.getElementById('c5-orden').appendChild(chip);
+
+        if (c5Orden.length === 3) {
+          var totales = c5Orden.map(c5Total);
+          var bien = totales[0] <= totales[1] && totales[1] <= totales[2];
+          var dicho = c5Orden.map(function (x) { return x.nombre + ' (' + c5Total(x) + ')'; }).join(' → ');
+          if (bien) {
+            s321Feedback('fb-c5', 'acierto',
+              '<b>' + dicho + '</b>. Leíste el tamaño por las cintas, sin contar de uno en uno.');
+          } else {
+            /* No se castiga: se muestra el orden real para que lo compare. El
+               cierre evalúa si sabe leer por grupos, y esa lectura se aprende
+               viendo la comparación, no recibiendo un «incorrecto». */
+            var real = C5_MESAS.slice().sort(function (x, y) { return c5Total(x) - c5Total(y); })
+                        .map(function (x) { return x.nombre + ' (' + c5Total(x) + ')'; }).join(' → ');
+            s321Feedback('fb-c5', 'aclaracion',
+              'Tú despachaste: <b>' + dicho + '</b>. Por tamaño real iban: <b>' + real +
+              '</b>. Fíjate en las cintas: mandan ellas antes que los sueltos.');
           }
-        } else {
-          s321Sacudir(h);
-          var v = s321Fallo('c5');
-          var pista = { c: 'Cuenta las tiras azules de la mesa.',
-                        s: 'Los sueltos son los que están fuera de las cintas.',
-                        t: 'Junta los saltos y los sueltos: 10, 20, 30, 40… y sigue de uno en uno.' };
-          s321Feedback('fb-c5', 'error', v === 1
-            ? 'Mira la mesa con calma: cintas primero, sueltos después.'
-            : pista[h.dataset.celda]);
+          s321Completar('c5', { origenEl: b });
         }
+        s321Recolocar();
       };
     });
+    s321Recolocar();
   }
 
   /* ---------- Desafío 6 · el salto falso ---------- */
@@ -3264,18 +3309,19 @@ function s321Recolocar() {
     btn.onclick = function () {
       if (s321PasoCompletado['c7']) return;
       var v = parseInt(campo.value, 10);
-      if (isNaN(v)) { s321Feedback('fb-c7', 'aclaracion', 'Escribe tu predicción en el recuadro.'); return; }
-      if (v === 48) {
-        campo.disabled = true; btn.disabled = true;
-        s321Feedback('fb-c7', 'acierto', '<b>48</b>. La regla de la libreta: las cintas escriben las <b>decenas</b> y los sueltos, las <b>unidades</b>.');
-        s321Completar('c7', { origenEl: btn });
-      } else {
-        s321Sacudir(campo);
-        var n = s321Fallo('c7');
-        s321Feedback('fb-c7', 'error', n === 1
-          ? 'Prueba otra ficha y mira qué escribe la libreta.'
-          : 'Las cintas van primero y los sueltos después: 4 y 8…');
-      }
+      /* Predecir no es acertar. El campo está en blanco para que el estudiante
+         se moje ANTES de ver el resultado; calificar esa apuesta con un error
+         enseña a no arriesgarse, que es lo contrario de lo que la actividad
+         busca. Se acepta cualquier número, se enseña el de la libreta y se le
+         pide comparar — comparar es donde está el aprendizaje. */
+      if (isNaN(v)) { s321Feedback('fb-c7', 'aclaracion', 'Escribe tu predicción en el recuadro: cualquier número vale, es una apuesta.'); return; }
+      campo.disabled = true; btn.disabled = true;
+      document.getElementById('c7-pantalla').textContent = '4 cintas y 8 sueltos → 48';
+      s321Feedback('fb-c7', 'acierto',
+        'Tú predijiste <b>' + v + '</b>; la libreta escribió <b>48</b>. ' +
+        (v === 48 ? 'Le cogiste la regla: ' : 'Compara con tu apuesta — ') +
+        'las cintas escriben las <b>decenas</b> y los sueltos, las <b>unidades</b>.');
+      s321Completar('c7', { origenEl: btn });
     };
   }
 
@@ -3338,7 +3384,7 @@ function s321Recolocar() {
             c9Para();
             zona.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><button class="btn-paso btn-paso-claro s321-btn" id="c9-otra"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Jugar de nuevo</button></div>';
             document.getElementById('c9-otra').onclick = c9Arranca;
-            s321Feedback('fb-c9', 'acierto', '¡Cinco mesas al camión! El método ya te sale <b>a golpe de vista</b>.');
+            s321Arenga('fb-c9', 'acierto');
             s321Completar('c9');
           } else {
             c9Pinta(); c9Arma();
@@ -3349,7 +3395,7 @@ function s321Recolocar() {
              relámpago se quedaba mudo. El rojo es obligatorio siempre que se
              evalúe una respuesta (efectos-obligatorios.md §4). */
           s321Sacudir(b);
-          s321Feedback('fb-c9', 'error', 'Esa mesa tiene <b>' + total + '</b>: cuenta las cintas a saltos y súmale los sueltos. Sigue intentándolo.');
+          s321Arenga('fb-c9', 'error');
           s321Fallo('c9');
         }
       };
@@ -3360,14 +3406,14 @@ function s321Recolocar() {
     clearTimeout(c9Timer);
     c9Timer = setTimeout(function () {
       c9Idx++;
-      s321Feedback('fb-c9', 'aclaracion', '¡Esa mesa pasó de largo! Llega otra.');
+      s321Feedback('fb-c9', 'aclaracion', '¡Esa mesa pasó de largo! Llega otra.', { arenga: true, ms: 1500 });
       c9Pinta(); c9Arma();
     }, 7000);
   }
   function c9Para() { clearTimeout(c9Timer); c9Timer = null; }
   function c9Arranca() {
     c9Aciertos = 0; c9Idx = 0; c9Marca();
-    s321Feedback('fb-c9', 'aclaracion', 'Cinta primero, sueltos después. ¡Ahí viene la primera mesa!');
+    s321Feedback('fb-c9', 'aclaracion', 'Cinta primero, sueltos después. ¡Ahí viene la primera mesa!', { arenga: true, ms: 1500 });
     c9Pinta(); c9Arma();
   }
   function initC9() {
@@ -3395,23 +3441,32 @@ function s321Recolocar() {
       var c = parseInt(document.getElementById('c10-c').value, 10);
       var s = parseInt(document.getElementById('c10-s').value, 10);
       var frase = texto.value.trim();
-      var fraseOk = frase.length >= 25 && /(salto|grupo|cinta|diez|10|uno en uno)/i.test(frase);
-      var numOk = t === 52 && c === 5 && s === 2;
-      if (numOk && fraseOk) {
+      /* NINGÚN CAMPO ESCRITO SE CALIFICA. Un hueco en blanco invita a escribir,
+         y castigar lo escrito con un «incorrecto» convierte el cierre en un
+         examen de una sola respuesta: el estudiante que razonó bien y puso
+         otro número —o lo contó de otra forma— recibe un error. Lo único que
+         se exige es que el acta esté COMPLETA. Lo que se escribió se devuelve
+         al estudiante y se acompaña de la referencia del taller, para que él
+         mismo compare; comparar es la tarea, no acertar. */
+      var completo = !isNaN(t) && !isNaN(c) && !isNaN(s) && frase.length > 0;
+      if (completo) {
         ['c10-t', 'c10-c', 'c10-s'].forEach(function (id) {
           var el = document.getElementById(id); el.classList.add('ok'); el.disabled = true;
         });
         texto.disabled = true; btn.disabled = true;
         c10Frase = frase;
-        s321Feedback('fb-c10', 'acierto', 'Acta firmada: <b>52 cascabeles, 5 cintas y 2 sueltos</b> — y contado con el método del taller.');
+        s321Feedback('fb-c10', 'acierto',
+          'Acta firmada con <b>' + t + '</b> cascabeles: <b>' + c + '</b> cintas y <b>' + s +
+          '</b> sueltos. En la mesa del taller había <b>52</b> — 5 cintas y 2 sueltos. ' +
+          'Compara tu conteo con el suyo y explica en tu Libreta a qué se debe la diferencia, si la hay.');
         s321Completar('c10', { origenEl: btn });
       } else {
-        s321Fallo('c10');
+        /* No es un fallo de contenido: solo faltan campos por rellenar. */
         var faltas = [];
-        if (!numOk) faltas.push('los números de la mesa (mírala otra vez: cintas, sueltos, total)');
-        if (!fraseOk) faltas.push('contar cómo lo hiciste usando la regla (saltos, grupos, de uno en uno)');
-        if (!numOk) { s321Sacudir(document.getElementById('c10-t')); } else { s321Sacudir(texto); }
-        s321Feedback('fb-c10', 'error', 'Al acta le falta <b>' + faltas.join('</b> y <b>') + '</b>.');
+        if (isNaN(t) || isNaN(c) || isNaN(s)) faltas.push('los tres números del acta');
+        if (!frase.length) faltas.push('la línea donde cuentas cómo lo hiciste');
+        s321Feedback('fb-c10', 'aclaracion',
+          'Para firmar el acta falta ' + faltas.join(' y ') + '. Escribe lo que tú contaste — no hay una única forma correcta.');
       }
     };
   }
@@ -3429,7 +3484,7 @@ function s321Recolocar() {
   }
   document.getElementById('cert-input').addEventListener('input', function () {
     var v = this.value.trim();
-    document.getElementById('cert-nombre').textContent = v || ' ';
+    document.getElementById('cert-nombre').textContent = v || ' ';
   });
 
   /* ---------- Arranque ---------- */
