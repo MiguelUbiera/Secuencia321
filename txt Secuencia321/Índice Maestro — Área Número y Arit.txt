@@ -1,9 +1,0 @@
-Índice Maestro — Área: Número y Aritmética
-
-El siguiente índice representa el compendio conceptual de la primera área matemática desglosada dentro de este diseño curricular: Número y Aritmética.
-
-Esta área se organiza jerárquicamente en cuatro niveles: Área → Dominio → Núcleo Conceptual → Unidad de Aprendizaje. Cada dominio agrupa varios núcleos conceptuales, y cada núcleo conceptual despliega, a su vez, sus propias unidades de aprendizaje.
-
-Las unidades de aprendizaje —el cuarto y último nivel de esta jerarquía— son el punto de partida definitivo a partir del cual se generan las secuencias didácticas.
-
-Por el momento, solo esta área ha sido desarrollada; las demás áreas del conocimiento matemático se irán incorporando progresivamente.
