@@ -1,0 +1,37 @@
+01_Nombres_y_Registros/
+├── Nombre_Comercial_Secuencia321.pdf
+├── Marca_Secuencia321.pdf
+└── Certificados/
+
+02_Tipografia/
+├── Fuentes_Seleccionadas.txt
+└── Fuentes_Instaladas/
+
+03_Identidad_de_Marca/
+├── Logos/
+│   ├── Secuencia321_Horizontal.png
+│   ├── Secuencia321_Horizontal.svg
+│   ├── Secuencia321_Vertical.png
+│   ├── Secuencia321_Vertical.svg
+│   ├── Secuencia321_Cuadrado.png
+│   ├── Secuencia321_Cuadrado.svg
+│   ├── Secuencia321_BlancoNegro.png
+│   ├── Secuencia321_BlancoNegro.svg
+│   ├── Secuencia321_FondoOscuro.png
+│   └── Secuencia321_FondoOscuro.svg
+├── Favicons/
+│   ├── favicon.ico (conteniendo 16, 32 y 64 px)
+│   ├── favicon-16x16.png
+│   ├── favicon-32x32.png
+│   └── favicon-64x64.png
+└── Paleta_de_Colores.txt
+
+04_Presentacion/
+├── Presentacion_Secuencia321.pptx
+├── Plantilla_Documentos.docx
+└── Pie_de_Pagina_HTML.txt
+
+05_Frases_e_Ideas_Clave/
+├── Frases_Representativas.txt
+├── Conceptos_Clave.txt
+└── Narrativa_Base.txt
